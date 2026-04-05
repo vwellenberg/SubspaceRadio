@@ -3,7 +3,7 @@ from swingmusic.lib.home.create_items import create_items
 from swingmusic.models.logger import TrackLog
 
 
-def get_recently_played(limit: int, userid: int | None = None, _entries: list[TrackLog] = []):
+def get_recently_played(limit: int, userid: int | None = None, _entries: list[TrackLog] | None = None):
     """
     Get the recently played items for the homepage.
 
@@ -15,7 +15,7 @@ def get_recently_played(limit: int, userid: int | None = None, _entries: list[Tr
     BATCH_SIZE = 200
     current_index = 0
 
-    if len(_entries):
+    if _entries:
         entries = _entries
         limit = 1
     else:

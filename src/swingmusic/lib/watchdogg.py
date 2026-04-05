@@ -258,6 +258,16 @@ class Handler(PatternMatchingEventHandler):
         """
         path = self.get_abs_path(event.src_path)
         remove_track(path)
+        # Clean up tracking state for deleted files
+        self.file_sizes.pop(event.src_path, None)
+        try:
+            self.files_to_process.remove(event.src_path)
+        except ValueError:
+            pass
+        try:
+            self.files_to_process_windows.remove(event.src_path)
+        except ValueError:
+            pass
 
     def on_moved(self, event):
         """
@@ -309,6 +319,9 @@ class Handler(PatternMatchingEventHandler):
         except ValueError:
             # file was already removed from the list by another event handler.
             log.info(f"File {event.src_path} was already removed from the processing list.")
+        finally:
+            # Clean up file_sizes entry to prevent unbounded dict growth
+            self.file_sizes.pop(event.src_path, None)
 
     def on_modified(self, event):
         # this event handler is triggered twice on windows

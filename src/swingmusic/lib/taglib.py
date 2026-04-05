@@ -60,9 +60,9 @@ def extract_thumb(filepath: str, webp_path: str, overwrite=False, paths: Paths =
         ratio = width / height
 
         for path, size in images:
-            img.resize((size, int(size / ratio)), Image.LANCZOS).save(path, "webp")
-
-        del img
+            resized = img.resize((size, int(size / ratio)), Image.LANCZOS)
+            resized.save(path, "webp")
+            resized.close()
 
     if not overwrite and sm_img_path.exists():
         img_size = os.path.getsize(sm_img_path)
@@ -84,8 +84,11 @@ def extract_thumb(filepath: str, webp_path: str, overwrite=False, paths: Paths =
             try:
                 png = img.convert("RGB")
                 save_image(png)
+                png.close()
             except:  # pylint: disable=bare-except
                 return False
+        finally:
+            img.close()
 
         return True
     return False

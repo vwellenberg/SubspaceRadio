@@ -24,19 +24,33 @@ api = APIBlueprint("track", __name__, url_prefix="/file", abp_tags=[bp_tag])
 
 
 class TransCodeStore:
+    MAX_CACHE_SIZE = 50
     map: dict[str, str] = {}
 
     @classmethod
     def add_file(cls, trackhash: str, filepath: str):
         cls.map[trackhash] = filepath
+        cls._evict_if_needed()
 
     @classmethod
     def remove_file(cls, trackhash: str):
-        del cls.map[trackhash]
+        filepath = cls.map.pop(trackhash, None)
+        if filepath:
+            try:
+                os.unlink(filepath)
+            except OSError:
+                pass
 
     @classmethod
     def find(cls, trackhash: str):
         return cls.map.get(trackhash)
+
+    @classmethod
+    def _evict_if_needed(cls):
+        """Remove oldest cached transcodes when cache exceeds limit."""
+        while len(cls.map) > cls.MAX_CACHE_SIZE:
+            oldest_key = next(iter(cls.map))
+            cls.remove_file(oldest_key)
 
 
 class SendTrackFileQuery(BaseModel):
