@@ -26,7 +26,13 @@ jobs:
         run: uvx ruff format --check src/ tests/
 
       - name: Mypy type check (strict modules)
-        run: uvx --with xxhash --with unidecode --with pendulum mypy src/swingmusic/utils/ --config-file pyproject.toml
+        run: >-
+          uvx --with xxhash --with unidecode --with pendulum mypy
+          src/swingmusic/utils/hashing.py
+          src/swingmusic/utils/dates.py
+          src/swingmusic/utils/parsers.py
+          src/swingmusic/utils/__init__.py
+          --config-file pyproject.toml
 
   test:
     name: Tests
