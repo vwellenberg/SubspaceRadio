@@ -70,6 +70,7 @@ fallback_version = "v0.0.0"
 
 [dependency-groups]
 dev = [
+    "mypy",
     "pre-commit",
     "pytest",
     "ruff",
@@ -108,3 +109,20 @@ known-first-party = ["swingmusic"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+exclude = ["src/swingmusic/lib/pydub"]
+
+# Strict mode for modules that are already clean
+[[tool.mypy.overrides]]
+module = [
+    "swingmusic.utils.hashing",
+    "swingmusic.utils.dates",
+    "swingmusic.utils.parsers",
+    "swingmusic.utils",
+]
+disallow_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true

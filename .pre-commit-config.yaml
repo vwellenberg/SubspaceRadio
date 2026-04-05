@@ -5,3 +5,16 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        pass_filenames: false
+        args: [
+          src/swingmusic/utils/hashing.py,
+          src/swingmusic/utils/dates.py,
+          src/swingmusic/utils/parsers.py,
+          src/swingmusic/utils/__init__.py,
+          --config-file, pyproject.toml,
+        ]
+        additional_dependencies: [xxhash, unidecode, pendulum]

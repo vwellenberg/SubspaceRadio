@@ -31,12 +31,11 @@ def timestamp_to_time_passed(timestamp: str | int | float):
     """
     Converts a timestamp to time passed. e.g. 2 minutes ago, 1 hour ago, yesterday, 2 days ago, 2 weeks ago, etc.
     """
-    now = datetime.now().timestamp()
+    now_ts = datetime.now().timestamp()
     then = datetime.fromtimestamp(int(timestamp)).timestamp()
 
-    diff = now - then
-    now = pendulum.now()
-    return now.subtract(seconds=diff).diff_for_humans()
+    diff = now_ts - then
+    return pendulum.now().subtract(seconds=diff).diff_for_humans()
 
 
 def date_string_to_time_passed(prev_date: str) -> str:
@@ -72,7 +71,7 @@ def get_date_range(duration: str, units_ago: int = 0):
     Returns a tuple of dates representing the start and end of a given duration.
     """
     date_range = None
-    seconds_ago = 0
+    seconds_ago: float = 0
 
     if duration != "alltime":
         seconds_ago = (pendulum.now() - pendulum.now().subtract().start_of(duration)).total_seconds() * units_ago
