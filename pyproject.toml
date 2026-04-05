@@ -71,6 +71,7 @@ fallback_version = "v0.0.0"
 [dependency-groups]
 dev = [
     "pre-commit",
+    "pytest",
     "ruff",
     "twine>=6.1.0",
 ]

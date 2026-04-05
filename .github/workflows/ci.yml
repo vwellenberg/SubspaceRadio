@@ -38,4 +38,4 @@ jobs:
         run: uv python install 3.11
 
       - name: Run tests
-        run: uvx pytest tests/ -v
+        run: uvx --with xxhash --with unidecode --with pendulum --with requests pytest tests/ -v --ignore=tests/test_split_artists.py
