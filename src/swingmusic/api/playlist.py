@@ -4,7 +4,6 @@ All playlist-related routes.
 
 import json
 import pathlib
-from datetime import datetime
 from typing import Any
 
 from flask_openapi3 import APIBlueprint, Tag
@@ -104,8 +103,7 @@ def send_all_playlists(query: SendAllPlaylistsQuery):
     playlists = PlaylistTable.get_all()
     playlists = sorted(
         playlists,
-        key=lambda p: datetime.strptime(p.last_updated, "%Y-%m-%d %H:%M:%S"),
-        reverse=True,
+        key=lambda p: p.name.casefold(),
     )
 
     for playlist in playlists:

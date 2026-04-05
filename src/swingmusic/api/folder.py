@@ -4,7 +4,6 @@ Contains all the folder routes.
 
 import os
 import pathlib
-from datetime import datetime
 from pathlib import Path
 
 import psutil
@@ -137,8 +136,7 @@ def get_folder_tree(body: FolderTree):
         playlists = PlaylistTable.get_all()
         playlists = sorted(
             playlists,
-            key=lambda p: datetime.strptime(p.last_updated, "%Y-%m-%d %H:%M:%S"),
-            reverse=True,
+            key=lambda p: p.name.casefold(),
         )
 
         return {
