@@ -23,6 +23,7 @@
 
 ## Metadaten
 
+- [ ] **Auto-Tag Button:** Album angeben → Track-Namen, Künstler, Genre etc. automatisch von MusicBrainz holen und in die Audiodateien schreiben (via `mutagen`)
 - [ ] Automatischer Metadaten-Abgleich aus dem Netz (MusicBrainz + Cover Art Archive)
 - [ ] Last.fm ist bereits als Plugin integriert — erweitern für fehlende Infos
 
