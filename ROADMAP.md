@@ -9,7 +9,7 @@
 ## Ordner (Folders)
 
 - [x] Alphabetische Ordner-Sortierung als Default
-- [ ] Ordner als Liste statt Kacheln darstellen (Namen werden aktuell stark abgeschnitten)
+- [ ] Ordner-Namen in Kacheln besser lesbar machen (werden aktuell stark abgeschnitten)
 - [ ] Sortierung rechts oben soll auch für Ordner gelten, nicht nur Songs
 
 ## Statistiken
