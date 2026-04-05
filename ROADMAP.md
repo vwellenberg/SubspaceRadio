@@ -29,4 +29,4 @@
 
 ## Bugs
 
-- [ ] Memory Leaks untersuchen (Server musste in der Vergangenheit manuell neugestartet werden)
+- [x] Memory Leaks untersuchen und fixen (PIL Images, Watchdog, TransCodeStore, mutable default arg)

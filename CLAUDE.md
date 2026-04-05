@@ -8,6 +8,7 @@ Fork von [swingmx/swingmusic](https://github.com/swingmx/swingmusic) — ein sel
 - **Python:** >=3.11
 - **Package Manager:** uv (nicht pip!)
 - **Server:** 192.168.0.4, Port 1970, systemd Service `subspaceradio`
+- **SSH:** `ssh vwellenberg@192.168.0.4` (ed25519 Key)
 - **Webclient:** Separates Repo `swingmx/webclient` (noch nicht geforkt)
 
 ## Entwicklung
@@ -40,6 +41,7 @@ uvx --with xxhash --with unidecode --with pendulum mypy src/swingmusic/utils/has
 - `src/swingmusic/lib/pydub/` — vendored pydub, nicht anfassen
 - `tests/test_split_artists.py` — alter unittest-Test, wird in CI ignoriert (dupliziert durch test_parsers.py)
 - `bjoern` (WSGI-Server) braucht `libev-dev` + `python3-dev` zum Bauen — fehlt in vielen Umgebungen, daher CI-Tests mit `uvx` statt `uv run`
+- Tests mit schweren Dependencies nutzen `sys.modules` Mocking (siehe `test_album_model.py`, `test_sortlib.py`)
 
 ## Server-Deployment
 
@@ -47,9 +49,28 @@ uvx --with xxhash --with unidecode --with pendulum mypy src/swingmusic/utils/has
 # Auf dem Server (192.168.0.4):
 cd ~/SubspaceRadio
 git pull
-sudo systemctl restart subspaceradio
+sudo -n systemctl restart subspaceradio
+
+# Status (kein sudo nötig):
+systemctl status subspaceradio
+journalctl -u subspaceradio -f
+
+# Memory beobachten:
+ps aux | grep swingmusic | grep -v grep | awk '{print $6/1024"MB"}'
 ```
+
+Passwordless sudo ist konfiguriert für `systemctl restart/stop/start subspaceradio`.
+
+## Was bisher gemacht wurde
+
+- Ruff Linting + Formatting (483 → 0 Issues)
+- Pre-commit Hooks (ruff + mypy)
+- CI Pipeline (GitHub Actions: Lint, Format, Mypy, Tests)
+- 86 pytest Tests (Hashing, Parsers, Dates, Utils, Album-Model, Folder-Sorting)
+- mypy strict für 4 Utils-Module
+- Alphabetische Sortierung als Default für Ordner und Playlists
+- Memory Leak Fixes (PIL Images, Watchdog, TransCodeStore, mutable default arg)
 
 ## Nächste Schritte
 
-Siehe [ROADMAP.md](ROADMAP.md) — Playlist- und Ordner-Verbesserungen + Memory Leak Analyse. Frontend-Änderungen erfordern einen Fork des Webclient-Repos.
+Siehe [ROADMAP.md](ROADMAP.md). Frontend-Änderungen (Ordner-Listenansicht, Playlist Drag & Drop, Auto-Tag Button) erfordern einen Fork des Webclient-Repos (`swingmx/webclient`).
