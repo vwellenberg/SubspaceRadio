@@ -3,10 +3,10 @@ Contains all the search routes.
 """
 
 from typing import Any, Literal
-from unidecode import unidecode
+
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import Field
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from unidecode import unidecode
 
 from swingmusic import models
 from swingmusic.api.apischemas import GenericLimitSchema
@@ -14,7 +14,6 @@ from swingmusic.lib import searchlib
 from swingmusic.serializers.artist import serialize_for_cards
 from swingmusic.settings import Defaults
 from swingmusic.store.tracks import TrackStore
-
 
 tag = Tag(name="Search", description="Search for tracks, albums and artists")
 api = APIBlueprint("search", __name__, url_prefix="/search", abp_tags=[tag])
@@ -31,15 +30,11 @@ class SearchQuery(GenericLimitSchema):
         json_schema_extra={"example": "Fleetwood Mac"},
     )
     start: int = Field(description="The index to start from", default=0)
-    limit: int = Field(
-        description="The number of items to return", default=SEARCH_COUNT
-    )
+    limit: int = Field(description="The number of items to return", default=SEARCH_COUNT)
 
 
 class TopResultsQuery(SearchQuery):
-    limit: int = Field(
-        description="The number of items to return", default=Defaults.API_CARD_LIMIT
-    )
+    limit: int = Field(description="The number of items to return", default=Defaults.API_CARD_LIMIT)
 
 
 class SearchLoadMoreQuery(SearchQuery):
@@ -111,9 +106,7 @@ def search_items(query: SearchLoadMoreQuery):
         case "artists":
             results = Search(query.q).search_artists()
         case _:
-            return {
-                "error": "Invalid item type. Valid types are 'tracks', 'albums' and 'artists'"
-            }, 400
+            return {"error": "Invalid item type. Valid types are 'tracks', 'albums' and 'artists'"}, 400
 
     return {
         "results": results[query.start : query.start + query.limit],

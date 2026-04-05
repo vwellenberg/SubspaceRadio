@@ -1,6 +1,6 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
+
 from swingmusic.api.auth import admin_required
 from swingmusic.config import UserConfig
 from swingmusic.db.userdata import PluginTable
@@ -25,9 +25,7 @@ class PluginBody(BaseModel):
 
 
 class PluginActivateBody(PluginBody):
-    active: bool = Field(
-        description="New plugin active state", example=False, default=False
-    )
+    active: bool = Field(description="New plugin active state", example=False, default=False)
 
 
 @api.post("/setactive")
@@ -43,9 +41,7 @@ def activate_deactivate_plugin(body: PluginActivateBody):
 
 
 class PluginSettingsBody(PluginBody):
-    settings: dict = Field(
-        description="The new plugin settings", example={"key": "value"}
-    )
+    settings: dict = Field(description="The new plugin settings", example={"key": "value"})
 
 
 @api.post("/settings")

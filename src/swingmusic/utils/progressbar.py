@@ -9,8 +9,7 @@ def tqdm(*args, **kwargs):
     kwargs["bar_format"] = bar_format
 
     if "desc" in kwargs:
-        print(f'INFO|{kwargs["desc"].capitalize()} ...')
+        print(f"INFO|{kwargs['desc'].capitalize()} ...")
         kwargs["desc"] = ""
-
 
     return _tqdm(*args, **kwargs)

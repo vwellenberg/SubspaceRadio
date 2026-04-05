@@ -57,7 +57,7 @@ def remove_prod(title: str) -> str:
     """
 
     # check if title contain title, if not return it.
-    if not ("prod." in title.lower()):
+    if "prod." not in title.lower():
         return title
 
     # check if title has brackets
@@ -152,9 +152,7 @@ def get_album_info(bracket_text: str | None) -> list[str]:
     return versions
 
 
-def get_base_title_and_versions(
-    original_album_title: str, get_versions=True
-) -> tuple[str, list[str]]:
+def get_base_title_and_versions(original_album_title: str, get_versions=True) -> tuple[str, list[str]]:
     """
     Extracts the base album title and version info from an album title string using regex.
     """
@@ -179,18 +177,14 @@ def remove_bracketed_remaster(text: str):
     """
     Removes remaster info from a track title that contains brackets using regex.
     """
-    return re.sub(
-        r"\s*[\\[(][^)\]]*remaster[^)\]]*[)\]]\s*", "", text, flags=re.IGNORECASE
-    ).strip()
+    return re.sub(r"\s*[\\[(][^)\]]*remaster[^)\]]*[)\]]\s*", "", text, flags=re.IGNORECASE).strip()
 
 
 def remove_hyphen_remasters(text: str):
     """
     Removes remaster info from a track title that contains a hypen (-) using regex.
     """
-    return re.sub(
-        r"\s-\s*[^-]*\bremaster[^-]*\s*", "", text, flags=re.IGNORECASE
-    ).strip()
+    return re.sub(r"\s-\s*[^-]*\bremaster[^-]*\s*", "", text, flags=re.IGNORECASE).strip()
 
 
 def clean_title(title: str) -> str:

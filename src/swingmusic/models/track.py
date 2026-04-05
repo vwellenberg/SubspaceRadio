@@ -108,18 +108,14 @@ class Track:
         # Remove duplicates from artists and albumartists
         seen_artists = set()
         self.artists = [
-            d
-            for d in self.artists
-            if tuple(d.items()) not in seen_artists
-            and not seen_artists.add(tuple(d.items()))
+            d for d in self.artists if tuple(d.items()) not in seen_artists and not seen_artists.add(tuple(d.items()))
         ]
 
         seen_albumartists = set()
         self.albumartists = [
             d
             for d in self.albumartists
-            if tuple(d.items()) not in seen_albumartists
-            and not seen_albumartists.add(tuple(d.items()))
+            if tuple(d.items()) not in seen_albumartists and not seen_albumartists.add(tuple(d.items()))
         ]
 
         self.recreate_trackhash()
@@ -151,9 +147,7 @@ class Track:
         # Extract featured artists
         if self.config.extractFeaturedArtists:
             feat, new_title = parse_feat_from_title(self.title, self.config)
-            feat = [
-                {"name": f, "artisthash": create_hash(f, decode=True)} for f in feat
-            ]
+            feat = [{"name": f, "artisthash": create_hash(f, decode=True)} for f in feat]
             feat = [f for f in feat if f["artisthash"] not in self.artisthashes]
             self.artists.extend(feat)
             self.artisthashes.extend([f["artisthash"] for f in feat])
@@ -182,9 +176,7 @@ class Track:
             self.album, _ = get_base_title_and_versions(self.album, get_versions=False)
 
         if self.config.mergeAlbums:
-            self.albumhash = create_hash(
-                self.album, *(a["name"] for a in self.albumartists)
-            )
+            self.albumhash = create_hash(self.album, *(a["name"] for a in self.albumartists))
 
     def process_genres(self):
         """
@@ -210,19 +202,14 @@ class Track:
                 src_genres = src_genres.replace(s, ",")
 
             genres_list: list[str] = src_genres.split(",")
-            self.genres = [
-                {"name": g.strip(), "genrehash": create_hash(g.strip())}
-                for g in genres_list
-            ]
+            self.genres = [{"name": g.strip(), "genrehash": create_hash(g.strip())} for g in genres_list]
             self.genrehashes = [g["genrehash"] for g in self.genres]
 
     def recreate_trackhash(self):
         """
         Recreates the trackhash based on the current title, album, and artist information.
         """
-        self.trackhash = create_hash(
-            self.title, self.album, *(artist["name"] for artist in self.artists)
-        )
+        self.trackhash = create_hash(self.title, self.album, *(artist["name"] for artist in self.artists))
 
     def copy(self):
         return Track(**{**asdict(self), "config": UserConfig()})

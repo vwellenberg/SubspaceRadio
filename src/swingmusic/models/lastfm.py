@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass
@@ -16,7 +15,6 @@ class SimilarArtist:
     artisthash: str
     similar_artists: list[SimilarArtistEntry]
 
-
     def get_artist_hash_set(self) -> set[str]:
         """
         Returns a set of similar artists.
@@ -24,5 +22,5 @@ class SimilarArtist:
         if not self.similar_artists:
             return set()
 
-        # INFO: 
-        return set(a['artisthash'] for a in self.similar_artists)
+        # INFO:
+        return set(a["artisthash"] for a in self.similar_artists)

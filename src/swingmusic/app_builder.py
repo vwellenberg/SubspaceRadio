@@ -1,30 +1,35 @@
 import datetime as dt
-import pathlib
 import logging
+import pathlib
 
 from flask import Response, request
-from flask_cors import CORS
 from flask_compress import Compress
-from flask_openapi3 import Info
-from flask_openapi3 import OpenAPI
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt, get_jwt_identity, set_access_cookies, verify_jwt_in_request
+from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    set_access_cookies,
+    verify_jwt_in_request,
+)
+from flask_openapi3 import Info, OpenAPI
 
 from swingmusic import api as swing_api
+from swingmusic.api.plugins import lyrics as lyrics_plugin
+from swingmusic.api.plugins import mixes as mixes_plugin
 from swingmusic.config import UserConfig
 from swingmusic.db.userdata import UserTable
 from swingmusic.settings import Metadata, Paths
 from swingmusic.utils.paths import get_client_files_extensions
-
-from swingmusic.api.plugins import lyrics as lyrics_plugin
-from swingmusic.api.plugins import mixes as mixes_plugin
 
 log = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # #
 # Grouped configuration function  #
 # # # # # # # # # # # # # # # # # #
 
-def config_app(web):
 
+def config_app(web):
     # CORS
     CORS(web, origins="*", supports_credentials=True)
 
@@ -88,11 +93,11 @@ def load_endpoints(web: OpenAPI):
 
 
 def load_plugins(web: OpenAPI):
-        # TODO: rework plugin support
-        # Plugins
-        web.register_api(swing_api.plugins.api)
-        web.register_api(lyrics_plugin.api)
-        web.register_api(mixes_plugin.api)
+    # TODO: rework plugin support
+    # Plugins
+    web.register_api(swing_api.plugins.api)
+    web.register_api(lyrics_plugin.api)
+    web.register_api(mixes_plugin.api)
 
 
 # # # # # # # # # # #
@@ -125,11 +130,7 @@ def check_auth_need() -> bool:
         "/auth/refresh",
         "/docs",
     }
-    files = {
-        ".webp",
-        ".jpg",
-        *get_client_files_extensions()
-    }
+    files = {".webp", ".jpg", *get_client_files_extensions()}
 
     urls = tuple(urls)
     files = tuple(files)
@@ -138,14 +139,13 @@ def check_auth_need() -> bool:
         return True
 
     # if request path starts with any of the blacklisted routes, don't verify jwt
-    if request.path.startswith(urls):
-        return True
+    return bool(request.path.startswith(urls))
 
-    return False
 
 # # # # # # # # # # # # #
 # global endpoint logic #
 # # # # # # # # # # # # #
+
 
 @app.route("/<path:path>")
 def serve_client_files(path: str):
@@ -224,7 +224,7 @@ def build() -> OpenAPI:
 
         try:
             exp_timestamp = get_jwt()["exp"]
-            until = dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=7)
+            until = dt.datetime.now(dt.UTC) + dt.timedelta(days=7)
 
             if until.timestamp() > exp_timestamp:
                 access_token = create_access_token(identity=get_jwt_identity())

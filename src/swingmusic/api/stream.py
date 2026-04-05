@@ -3,19 +3,19 @@ Contains all the track routes.
 """
 
 import os
-from pathlib import Path
 import tempfile
 import time
+from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from flask import Response, request, send_from_directory
 from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+
 from swingmusic.api.apischemas import TrackHashSchema
 from swingmusic.config import UserConfig
-from swingmusic.lib.transcoder import start_transcoding
-from flask import request, Response, send_from_directory
 from swingmusic.lib.trackslib import get_silence_paddings
-
+from swingmusic.lib.transcoder import start_transcoding
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.files import guess_mime_type
 
@@ -193,13 +193,9 @@ def transcode_and_stream(trackhash: str, filepath: str, bitrate: str, container:
     }
 
     # Create a temporary file
-    format = f".{container}" if container in format_params.keys() else ".flac"
-    container_args = (
-        format_params[container]
-        if container in format_params.keys()
-        else format_params["flac"]
-    )
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=format)
+    format = f".{container}" if container in format_params else ".flac"
+    container_args = format_params[container] if container in format_params else format_params["flac"]
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=format)  # noqa: SIM115
     temp_filename = temp_file.name
     temp_file.close()
 
@@ -211,10 +207,7 @@ def transcode_and_stream(trackhash: str, filepath: str, bitrate: str, container:
 
     def generate():
         # Poll for the output file
-        while (
-            not os.path.exists(temp_filename)
-            or os.path.getsize(temp_filename) < chunk_size
-        ):
+        while not os.path.exists(temp_filename) or os.path.getsize(temp_filename) < chunk_size:
             print(f"Waiting for transcoding to complete... filename: {temp_filename}")
             time.sleep(0.1)  # Wait for 100ms before checking again
 
@@ -324,7 +317,7 @@ def send_file_as_chunks(filepath: str) -> Response:
 
 def get_start_range(range_header: str):
     try:
-        range_start, range_end = range_header.strip().split("=")[1].split("-")
+        range_start, _range_end = range_header.strip().split("=")[1].split("-")
         return int(range_start)
 
     except ValueError:

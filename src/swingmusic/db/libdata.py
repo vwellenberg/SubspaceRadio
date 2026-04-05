@@ -1,12 +1,12 @@
-from swingmusic.config import UserConfig
-from swingmusic.db import Base
-from swingmusic.db.utils import track_to_dataclass, tracks_to_dataclasses
-from swingmusic.db.engine import DbEngine
+from typing import Any
+
 from sqlalchemy import JSON, Integer, String, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-from typing import Any, Optional
+from swingmusic.config import UserConfig
+from swingmusic.db import Base
+from swingmusic.db.engine import DbEngine
+from swingmusic.db.utils import track_to_dataclass, tracks_to_dataclasses
 
 
 class TrackTable(Base):
@@ -18,13 +18,13 @@ class TrackTable(Base):
     albumhash: Mapped[str] = mapped_column(String(), index=True)
     artists: Mapped[str] = mapped_column(String())
     bitrate: Mapped[int] = mapped_column(Integer())
-    copyright: Mapped[Optional[str]] = mapped_column(String())
+    copyright: Mapped[str | None] = mapped_column(String())
     date: Mapped[int] = mapped_column(Integer(), nullable=True)
     disc: Mapped[int] = mapped_column(Integer())
     duration: Mapped[int] = mapped_column(Integer())
     filepath: Mapped[str] = mapped_column(String(), index=True, unique=True)
     folder: Mapped[str] = mapped_column(String(), index=True)
-    genres: Mapped[Optional[str]] = mapped_column(String())
+    genres: Mapped[str | None] = mapped_column(String())
     last_mod: Mapped[float] = mapped_column(Integer())
     title: Mapped[str] = mapped_column(String())
     track: Mapped[int] = mapped_column(Integer())
@@ -32,9 +32,7 @@ class TrackTable(Base):
     lastplayed: Mapped[int] = mapped_column(Integer(), default=0)
     playcount: Mapped[int] = mapped_column(Integer(), default=0)
     playduration: Mapped[int] = mapped_column(Integer(), default=0)
-    extra: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        JSON(), default_factory=dict
-    )
+    extra: Mapped[dict[str, Any] | None] = mapped_column(JSON(), default_factory=dict)
 
     @classmethod
     def get_all(cls):
@@ -52,9 +50,7 @@ class TrackTable(Base):
     def get_tracks_by_filepaths(cls, filepaths: list[str]):
         with DbEngine.manager() as conn:
             result = conn.execute(
-                select(TrackTable)
-                .where(TrackTable.filepath.in_(filepaths))
-                .order_by(TrackTable.last_mod)
+                select(TrackTable).where(TrackTable.filepath.in_(filepaths)).order_by(TrackTable.last_mod)
             )
             return tracks_to_dataclasses(result.fetchall())
 
@@ -62,9 +58,7 @@ class TrackTable(Base):
     def get_tracks_in_path(cls, path: str):
         with DbEngine.manager() as conn:
             result = conn.execute(
-                select(TrackTable)
-                .where(TrackTable.filepath.contains(path))
-                .order_by(TrackTable.last_mod)
+                select(TrackTable).where(TrackTable.filepath.contains(path)).order_by(TrackTable.last_mod)
             )
 
             clean = []

@@ -1,5 +1,5 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
+
 from swingmusic.api.apischemas import AlbumHashSchema
 from swingmusic.store.albums import AlbumStore as Store
 

@@ -2,9 +2,9 @@
 
 import itertools
 import json
-from typing import Callable, Iterable
-from swingmusic.db.libdata import TrackTable
+from collections.abc import Callable, Iterable
 
+from swingmusic.db.libdata import TrackTable
 from swingmusic.models import Track
 from swingmusic.utils import classproperty
 from swingmusic.utils.auth import get_current_userid
@@ -62,9 +62,6 @@ class TrackGroup:
         return len(self.tracks)
 
 
-
-
-
 class TrackStore:
     # {'trackhash': Track[]}
     trackhashmap: dict[str, TrackGroup] = dict()
@@ -78,11 +75,7 @@ class TrackStore:
         """
         Returns a flat list of all tracks.
         """
-        return list(
-            itertools.chain.from_iterable(
-                [group.tracks for group in cls.trackhashmap.values()]
-            )
-        )
+        return list(itertools.chain.from_iterable([group.tracks for group in cls.trackhashmap.values()]))
 
     @classmethod
     def load_all_tracks(cls, instance_key: str):
@@ -273,18 +266,14 @@ class TrackStore:
         Returns all tracks matching the given artist. Duplicate tracks are removed.
         """
         predicate = lambda artisthashes, artisthash: artisthash in artisthashes
-        return cls.find_tracks_by(
-            key="artisthashes", value=artisthash, predicate=predicate
-        )
+        return cls.find_tracks_by(key="artisthashes", value=artisthash, predicate=predicate)
 
     @classmethod
     def get_tracks_in_path(cls, path: str):
         """
         Returns all tracks in the given path.
         """
-        predicate: Callable[[str, str], bool] = (
-            lambda track_folder, path: track_folder.startswith(path)
-        )
+        predicate: Callable[[str, str], bool] = lambda track_folder, path: track_folder.startswith(path)
 
         return cls.find_tracks_by(
             key="folder",

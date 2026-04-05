@@ -6,20 +6,21 @@ Contains default configs
 """
 
 import io
+import logging
 import multiprocessing
+import os
 import pathlib
 import shutil
 import sys
 import tempfile
 import zipfile
+from importlib import metadata
+from importlib import resources as imres
 from pathlib import Path
-import os
-import logging
+
 import requests
-from importlib import metadata, resources as imres
 
 from swingmusic.utils import classproperty
-
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class Singleton(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in Singleton._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
@@ -87,10 +88,7 @@ class AssetHandler:
         client_zip_path = imres.files("swingmusic") / "client.zip"
         if not client_zip_path.exists():
             # INFO: if client path contains an index.html file, return true
-            if (path / "index.html").exists():
-                return True
-
-            return False
+            return bool((path / "index.html").exists())
 
         with zipfile.ZipFile(client_zip_path, "r") as zip_ref:
             zip_ref.extractall(path)
@@ -148,9 +146,7 @@ class AssetHandler:
                     pass
 
             # INFO: if no release is found, download the latest release
-            log.error(
-                f"No release found for the v{Metadata.version}. Downloading latest version ..."
-            )
+            log.error(f"No release found for the v{Metadata.version}. Downloading latest version ...")
             return AssetHandler.process_release(releases[0], path)
 
         except (
@@ -255,9 +251,7 @@ class Paths(metaclass=Singleton):
 
             # TODO: find a platform independent way to access module globals like `Paths`
             # TODO: move this into multithreading management class
-            os.environ["SWINGMUSIC_CONFIG_DIR"] = (
-                self.config_parent.resolve().as_posix()
-            )
+            os.environ["SWINGMUSIC_CONFIG_DIR"] = self.config_parent.resolve().as_posix()
             os.environ["SWINGMUSIC_CLIENT_DIR"] = self.client_path.resolve().as_posix()
 
             self.setup_config_dirs()
@@ -342,9 +336,7 @@ class Paths(metaclass=Singleton):
         # Empty files to create
         empty_files = [
             # artist split ignore list
-            self.config_dir
-            / "data"
-            / "artist_split_ignore.txt"  # TODO: use USERCONFIG -> circular import error
+            self.config_dir / "data" / "artist_split_ignore.txt"  # TODO: use USERCONFIG -> circular import error
         ]
 
         for file in empty_files:
@@ -534,6 +526,6 @@ class Metadata:
         version = metadata.version("swingmusic")
 
         if version == "0.0.0":
-            return open("version.txt", "r").read().strip()
+            return open("version.txt").read().strip()
 
         return version

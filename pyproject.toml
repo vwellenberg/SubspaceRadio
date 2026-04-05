@@ -70,5 +70,40 @@ fallback_version = "v0.0.0"
 
 [dependency-groups]
 dev = [
+    "pre-commit",
+    "ruff",
     "twine>=6.1.0",
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src"]
+extend-exclude = ["src/swingmusic/lib"]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "SIM",   # flake8-simplify
+    "RUF",   # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long — wird vom formatter gehandhabt
+    "E731",   # lambda assignment — in diesem Projekt bewusst genutzt
+    "SIM102", # collapsible-if — oft lesbarer als kombiniertes if
+    "SIM105", # suppressible-exception — try/except/pass ist expliziter
+    "SIM108", # ternary statt if/else — bei langen Ausdrücken unleserlich
+    "SIM210", # bool() statt if/else True/False
+    "RUF012", # mutable class default — false positives bei SQLAlchemy models
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["swingmusic"]
+
+[tool.ruff.format]
+quote-style = "double"

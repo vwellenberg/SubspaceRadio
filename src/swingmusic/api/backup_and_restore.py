@@ -1,28 +1,21 @@
-from dataclasses import asdict
 import json
-import os
-from pathlib import Path
-from pprint import pprint
 import shutil
+from dataclasses import asdict
+from pathlib import Path
 from time import time
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
-import sqlalchemy.exc
-from swingmusic.api.auth import admin_required
 
-from swingmusic.db.userdata import FavoritesTable, PlaylistTable, ScrobbleTable, CollectionTable
+import sqlalchemy.exc
+from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+
+from swingmusic.api.auth import admin_required
+from swingmusic.db.userdata import CollectionTable, FavoritesTable, PlaylistTable, ScrobbleTable
 from swingmusic.lib.index import index_everything
 from swingmusic.settings import Paths
-from datetime import datetime
 from swingmusic.utils.dates import timestamp_to_time_passed
 
-from pydantic import BaseModel, Field
-from typing import Optional
-
 bp_tag = Tag(name="Backup and Restore", description="Backup and Restore")
-api = APIBlueprint(
-    "backup_and_restore", __name__, url_prefix="/backup", abp_tags=[bp_tag]
-)
+api = APIBlueprint("backup_and_restore", __name__, url_prefix="/backup", abp_tags=[bp_tag])
 
 
 @api.post("/create")
@@ -82,7 +75,7 @@ def backup():
     # SECTION: Collections
     collections_list = list(CollectionTable.get_all())
     collections_dicts = []
-    
+
     for collection in collections_list:
         # Remove auto-generated id field
         collection_copy = collection.copy()
@@ -117,7 +110,7 @@ class RestoreBackup:
     def __init__(self, backup_dir: Path):
         self.backup_dir = backup_dir
         self.backup_file = backup_dir / "data.json"
-        with open(self.backup_file, "r") as f:
+        with open(self.backup_file) as f:
             self.data = json.load(f)
 
         self.restore_favorites(self.data["favorites"])
@@ -143,9 +136,7 @@ class RestoreBackup:
     def restore_playlists(self, playlists: list[dict]):
         existing_playlists = PlaylistTable.get_all()
         existing_names = set(playlist.name for playlist in existing_playlists)
-        new_playlists = [
-            playlist for playlist in playlists if playlist["name"] not in existing_names
-        ]
+        new_playlists = [playlist for playlist in playlists if playlist["name"] not in existing_names]
 
         for playlist in new_playlists:
             try:
@@ -159,10 +150,7 @@ class RestoreBackup:
 
     def restore_scrobbles(self, scrobbles: list[dict]):
         existing_scrobbles = ScrobbleTable.get_all(0)
-        existing_hashes = set(
-            f"{scrobble.trackhash}.{scrobble.timestamp}"
-            for scrobble in existing_scrobbles
-        )
+        existing_hashes = set(f"{scrobble.trackhash}.{scrobble.timestamp}" for scrobble in existing_scrobbles)
         new_scrobbles = [
             scrobble
             for scrobble in scrobbles
@@ -179,26 +167,24 @@ class RestoreBackup:
     def restore_collections(self, collections: list[dict]):
         existing_collections = list(CollectionTable.get_all())
         existing_names = set(collection["name"] for collection in existing_collections)
-        new_collections = [
-            collection for collection in collections if collection["name"] not in existing_names
-        ]
+        new_collections = [collection for collection in collections if collection["name"] not in existing_names]
 
         for collection in new_collections:
             try:
                 # Ensure userid is set for the collection
                 if collection.get("userid") is None:
                     from swingmusic.utils.auth import get_current_userid
+
                     collection["userid"] = get_current_userid()
-                
+
                 CollectionTable.insert_one(collection)
             except sqlalchemy.exc.IntegrityError:
                 print("Integrity error, skipping collection:")
                 print(collection)
 
 
-
 class RestoreBackupBody(BaseModel):
-    backup_dir: Optional[str] = Field(
+    backup_dir: str | None = Field(
         default=None,
         description="The name of the backup directory to restore from. If not provided, all backups will be restored.",
         example="backup.1234567890",
@@ -239,7 +225,7 @@ def restore(body: RestoreBackupBody):
             backups.append(backup_dir.name)
 
     index_everything()
-    return {"msg": f"Restored successfully", "backups": backups}, 200
+    return {"msg": "Restored successfully", "backups": backups}, 200
 
 
 @api.get("/list")
@@ -259,9 +245,7 @@ def list_backups():
 
     for path in paths:
         try:
-            entries.append(
-                {"path": path, "timestamp": int(path.name.split(".")[1])}
-            )
+            entries.append({"path": path, "timestamp": int(path.name.split(".")[1])})
         except (IndexError, ValueError):
             pass
 
@@ -294,9 +278,7 @@ def list_backups():
 
 
 class DeleteBackupBody(BaseModel):
-    backup_dir: str = Field(
-        ..., description="The name of the backup directory to delete."
-    )
+    backup_dir: str = Field(..., description="The name of the backup directory to delete.")
 
 
 @api.delete("/delete")

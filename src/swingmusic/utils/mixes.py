@@ -1,11 +1,9 @@
-from swingmusic.models.track import Track
-from typing import List, Dict, Tuple
 from collections import Counter
 
+from swingmusic.models.track import Track
 
-def violates_gap_rule(
-    balanced_mix: Dict[int, Track], position: int, track: Track, gap: int = 3
-) -> bool:
+
+def violates_gap_rule(balanced_mix: dict[int, Track], position: int, track: Track, gap: int = 3) -> bool:
     """
     Check if placing the track at the given position violates the gap rule.
 
@@ -16,18 +14,14 @@ def violates_gap_rule(
 
     for i in range(max(0, position - gap), position):
         if i in balanced_mix:
-            existing_artists = set(
-                artist["artisthash"] for artist in balanced_mix[i].artists
-            )
+            existing_artists = set(artist["artisthash"] for artist in balanced_mix[i].artists)
             if track_artists.intersection(existing_artists):
                 return True
 
     return False
 
 
-def find_next_position(
-    balanced_mix: Dict[int, Track], start: int, track: Track, total_tracks: int
-) -> int:
+def find_next_position(balanced_mix: dict[int, Track], start: int, track: Track, total_tracks: int) -> int:
     """
     Find the next available position for the track, starting from 'start' and wrapping around.
     """
@@ -40,7 +34,7 @@ def find_next_position(
     return start  # If no better position is found, return the original position
 
 
-def is_tracklist_balanced(tracks: List[Track], gap: int = 3) -> Tuple[bool, bool]:
+def is_tracklist_balanced(tracks: list[Track], gap: int = 3) -> tuple[bool, bool]:
     """
     Checks if a tracklist is balanced or can be balanced.
 
@@ -60,9 +54,7 @@ def is_tracklist_balanced(tracks: List[Track], gap: int = 3) -> Tuple[bool, bool
     max_tracks_per_artist = (total_tracks + gap) // (gap + 1)
 
     # Check if it's mathematically possible to balance the tracklist
-    can_be_balanced = all(
-        count <= max_tracks_per_artist for count in artist_counts.values()
-    )
+    can_be_balanced = all(count <= max_tracks_per_artist for count in artist_counts.values())
 
     if not can_be_balanced:
         return False, False
@@ -82,7 +74,7 @@ def is_tracklist_balanced(tracks: List[Track], gap: int = 3) -> Tuple[bool, bool
     return can_be_balanced, is_currently_balanced
 
 
-def balance_mix(tracks: List[Track]) -> List[Track]:
+def balance_mix(tracks: list[Track]) -> list[Track]:
     """
     Balances the mix by ensuring that the tracks in a mix are distributed evenly.
     Preserves the overall rating order of tracks while minimizing disruption.
@@ -90,14 +82,14 @@ def balance_mix(tracks: List[Track]) -> List[Track]:
     Tracks that need to be moved are moved down the tracklist until they no longer
     violate the gap rule.
     """
-    can_be_balanced, is_balanced = is_tracklist_balanced(tracks)
+    _can_be_balanced, is_balanced = is_tracklist_balanced(tracks)
 
     if is_balanced:
         # Already balanced, no need to modify
         return tracks
 
     # Proceed with best-effort balancing
-    balanced_mix: Dict[int, Track] = {}
+    balanced_mix: dict[int, Track] = {}
     total_tracks = len(tracks)
 
     for i, track in enumerate(tracks):

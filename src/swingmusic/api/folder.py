@@ -4,24 +4,23 @@ Contains all the folder routes.
 
 import os
 import pathlib
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import psutil
-from flask_openapi3 import Tag
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
-from flask_openapi3 import APIBlueprint
 from showinfm import show_in_file_manager
 
 from swingmusic import settings
+from swingmusic.api.auth import admin_required
 from swingmusic.config import UserConfig
 from swingmusic.db.libdata import TrackTable
-from swingmusic.api.auth import admin_required
-from swingmusic.store.tracks import TrackStore
-from swingmusic.utils.wintools import is_windows
 from swingmusic.db.userdata import FavoritesTable, PlaylistTable
 from swingmusic.lib.folderslib import get_files_and_dirs, get_folders
 from swingmusic.serializers.track import serialize_track, serialize_tracks
+from swingmusic.store.tracks import TrackStore
+from swingmusic.utils.wintools import is_windows
 
 tag = Tag(name="Folders", description="Get folders and tracks in a directory")
 api = APIBlueprint("folder", __name__, url_prefix="/folder", abp_tags=[tag])
@@ -124,9 +123,7 @@ def get_folder_tree(body: FolderTree):
             pid = splits[1]
             playlist = PlaylistTable.get_by_id(int(pid))
             tracks = TrackStore.get_tracks_by_trackhashes(
-                playlist.trackhashes[
-                    body.start : body.start + body.limit if body.limit != -1 else None
-                ]
+                playlist.trackhashes[body.start : body.start + body.limit if body.limit != -1 else None]
             )
 
             return {
@@ -156,7 +153,7 @@ def get_folder_tree(body: FolderTree):
         }
 
     if req_dir == "$favorites":
-        tracks, total = FavoritesTable.get_fav_tracks(body.start, body.limit)
+        tracks, _total = FavoritesTable.get_fav_tracks(body.start, body.limit)
         tracks = TrackStore.get_tracks_by_trackhashes([t.hash for t in tracks])
 
         return {
@@ -260,9 +257,7 @@ def list_folders(body: DirBrowserBody):
     is_win = is_windows()
 
     if req_dir == "$root":
-        return {
-            "folders": [{"name": d, "path": d} for d in get_all_drives(is_win=is_win)]
-        }
+        return {"folders": [{"name": d, "path": d} for d in get_all_drives(is_win=is_win)]}
 
     # Resolve path to prevent directory traversal attacks
     req_dir = pathlib.Path(req_dir).resolve()

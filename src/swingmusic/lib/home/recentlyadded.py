@@ -1,16 +1,13 @@
 import pathlib
 from datetime import datetime
+from itertools import groupby
 
 from swingmusic.lib.playlistlib import get_first_4_images
 from swingmusic.models.playlist import Playlist
 from swingmusic.models.track import Track
-
-from swingmusic.store.tracks import TrackStore
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
-
-from itertools import groupby
-
+from swingmusic.store.tracks import TrackStore
 from swingmusic.utils import flatten
 from swingmusic.utils.dates import (
     create_new_date,
@@ -61,6 +58,7 @@ def create_track(t: Track):
         "help_text": "NEW TRACK",
     }
 
+
 # INFO: Keys: folder, tracks, time (timestamp)
 # group_type = dict[str, str | list[Track] | float]
 
@@ -91,9 +89,7 @@ def check_folder_type(group_: dict):
             "type": "album",
             "hash": albumhash,
             "timestamp": time,
-            "help_text": (
-                "NEW ALBUM" if albumhash in existing_album_hashes else "NEW TRACKS"
-            ),
+            "help_text": ("NEW ALBUM" if albumhash in existing_album_hashes else "NEW TRACKS"),
         }
 
     is_artist, artisthash, trackcount = check_is_artist_folder(tracks)
@@ -107,9 +103,7 @@ def check_folder_type(group_: dict):
             "type": "artist",
             "hash": artisthash,
             "timestamp": time,
-            "help_text": (
-                "NEW ARTIST" if artisthash not in existing_artist_hashes else "NEW MUSIC"
-            ),
+            "help_text": ("NEW ARTIST" if artisthash not in existing_artist_hashes else "NEW MUSIC"),
         }
 
     is_track_folder = check_is_track_folder(tracks)
@@ -174,11 +168,7 @@ def get_recently_added_items(limit: int = 7):
             if not item:
                 continue
 
-            (
-                recent_items.append(item)
-                if type(item) == dict
-                else recent_items.extend(item)
-            )
+            (recent_items.append(item) if type(item) == dict else recent_items.extend(item))
 
         if len(recent_items) >= limit:
             break

@@ -1,26 +1,25 @@
-from typing import List, TypeVar
+from typing import TypeVar
 
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
 from swingmusic.api.apischemas import GenericLimitSchema
 from swingmusic.db.userdata import FavoritesTable
 from swingmusic.lib.extras import get_extra_info
 from swingmusic.models import FavType
+from swingmusic.serializers.album import serialize_for_card, serialize_for_card_many
+from swingmusic.serializers.artist import (
+    serialize_for_card as serialize_artist,
+)
+from swingmusic.serializers.artist import (
+    serialize_for_cards,
+)
+from swingmusic.serializers.track import serialize_track, serialize_tracks
 from swingmusic.settings import Defaults
-
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
-
-from swingmusic.serializers.track import serialize_track, serialize_tracks
-from swingmusic.serializers.artist import (
-    serialize_for_card as serialize_artist,
-    serialize_for_cards,
-)
 from swingmusic.utils.dates import timestamp_to_time_passed
-from swingmusic.serializers.album import serialize_for_card, serialize_for_card_many
 
 bp_tag = Tag(name="Favorites", description="Your favorite items")
 api = APIBlueprint("favorites", __name__, url_prefix="/favorites", abp_tags=[bp_tag])
@@ -29,7 +28,7 @@ api = APIBlueprint("favorites", __name__, url_prefix="/favorites", abp_tags=[bp_
 T = TypeVar("T")
 
 
-def remove_none(items: List[T]) -> List[T]:
+def remove_none(items: list[T]) -> list[T]:
     return [i for i in items if i is not None]
 
 
@@ -73,9 +72,7 @@ def toggle_favorite(body: FavoritesAddBody):
     extra = get_extra_info(body.hash, body.type)
 
     try:
-        FavoritesTable.insert_item(
-            {"hash": body.hash, "type": body.type, "extra": extra}
-        )
+        FavoritesTable.insert_item({"hash": body.hash, "type": body.type, "extra": extra})
     except Exception as e:
         print(e)
         return {"msg": "Failed! An error occured"}, 500

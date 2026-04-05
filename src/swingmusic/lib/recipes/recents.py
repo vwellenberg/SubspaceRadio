@@ -1,6 +1,6 @@
 from swingmusic.db.userdata import ScrobbleTable, UserTable
-from swingmusic.lib.home.recentlyadded import get_recently_added_items
 from swingmusic.lib.home.get_recently_played import get_recently_played
+from swingmusic.lib.home.recentlyadded import get_recently_added_items
 from swingmusic.lib.recipes import HomepageRoutine
 from swingmusic.store.homepage import HomepageStore
 
@@ -31,15 +31,11 @@ class RecentlyPlayed(HomepageRoutine):
             last_entry = ScrobbleTable.get_last_entry(self.userids[0])
 
             if last_entry:
-                items = get_recently_played(
-                    limit=self.ITEM_LIMIT, userid=self.userids[0], _entries=[last_entry]
-                )
+                items = get_recently_played(limit=self.ITEM_LIMIT, userid=self.userids[0], _entries=[last_entry])
 
                 try:
                     item = items[0]
-                    store_entry = HomepageStore.entries[self.store_key].items[
-                        self.userids[0]
-                    ][0]
+                    store_entry = HomepageStore.entries[self.store_key].items[self.userids[0]][0]
                 except IndexError:
                     store_entry = None
                     item = None
@@ -52,25 +48,14 @@ class RecentlyPlayed(HomepageRoutine):
                 ):
                     # If the item is the same as the one in the store
                     # only update the timestamp
-                    HomepageStore.entries[self.store_key].items[self.userids[0]][0][
-                        "timestamp"
-                    ] = item["timestamp"]
+                    HomepageStore.entries[self.store_key].items[self.userids[0]][0]["timestamp"] = item["timestamp"]
                 else:
                     # Otherwise, insert the new item
                     # and remove the oldest item if there are more than 15 items
-                    HomepageStore.entries[self.store_key].items[self.userids[0]].insert(
-                        0, item
-                    )
+                    HomepageStore.entries[self.store_key].items[self.userids[0]].insert(0, item)
 
-                    if (
-                        len(
-                            HomepageStore.entries[self.store_key].items[self.userids[0]]
-                        )
-                        > self.ITEM_LIMIT
-                    ):
-                        HomepageStore.entries[self.store_key].items[
-                            self.userids[0]
-                        ].pop()
+                    if len(HomepageStore.entries[self.store_key].items[self.userids[0]]) > self.ITEM_LIMIT:
+                        HomepageStore.entries[self.store_key].items[self.userids[0]].pop()
 
         for userid in self.userids:
             items = get_recently_played(limit=self.ITEM_LIMIT, userid=userid)

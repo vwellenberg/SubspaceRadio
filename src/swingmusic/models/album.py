@@ -2,8 +2,8 @@ import dataclasses
 from dataclasses import dataclass
 
 from swingmusic.models.track import Track
-from swingmusic.utils.hashing import create_hash
 from swingmusic.utils.auth import get_current_userid
+from swingmusic.utils.hashing import create_hash
 from swingmusic.utils.parsers import get_base_title_and_versions
 
 
@@ -57,9 +57,7 @@ class Album:
     def __post_init__(self):
         self.image = self.albumhash + ".webp" + "?pathhash=" + self.pathhash
         self.populate_versions()
-        self.weakhash = create_hash(
-            self.og_title, ",".join(a["name"] for a in self.albumartists)
-        )
+        self.weakhash = create_hash(self.og_title, ",".join(a["name"] for a in self.albumartists))
 
     def populate_versions(self):
         _, self.versions = get_base_title_and_versions(self.og_title, get_versions=True)
@@ -111,10 +109,7 @@ class Album:
                 return True
 
         # if og_title ends with "the album"
-        if len(title) > 10 and title.endswith("the album"):
-            return True
-
-        return False
+        return bool(len(title) > 10 and title.endswith("the album"))
 
     def is_compilation(self) -> bool:
         """
@@ -142,22 +137,14 @@ class Album:
             "compilation",
         }
 
-        for substring in substrings:
-            if substring in self.title.lower():
-                return True
-
-        return False
+        return any(substring in self.title.lower() for substring in substrings)
 
     def is_live_album(self):
         """
         Checks if the album is a live album.
         """
         keywords = ["live from", "live at", "live in", "live on", "mtv unplugged"]
-        for keyword in keywords:
-            if keyword in self.og_title.lower():
-                return True
-
-        return False
+        return any(keyword in self.og_title.lower() for keyword in keywords)
 
     def is_ep(self) -> bool:
         """

@@ -1,7 +1,6 @@
-from swingmusic.utils.threading import background
-
-
 import subprocess
+
+from swingmusic.utils.threading import background
 
 
 @background
@@ -34,16 +33,20 @@ def start_transcoding(
         "ffmpeg",
         "-i",
         input_path,
-        "-map_metadata", "0",  # Add this line to copy metadata
+        "-map_metadata",
+        "0",  # Add this line to copy metadata
         "-b:a",
         bitrate,
         "-vn",
         "-compression_level",
         str(compression_level),
         # REVIEW: Idk what any flag below this point does!
-        "-movflags", "faststart+frag_keyframe+empty_moov", # TODO. specify fragment size
-        "-write_xing", "0", # ffmpeg.org/ffmpeg-formats.html
-        "-fflags", "+bitexact", #
+        "-movflags",
+        "faststart+frag_keyframe+empty_moov",  # TODO. specify fragment size
+        "-write_xing",
+        "0",  # ffmpeg.org/ffmpeg-formats.html
+        "-fflags",
+        "+bitexact",  #
     ]
 
     # Add format-specific parameters
@@ -52,9 +55,7 @@ def start_transcoding(
     # Add output path and overwrite flag
     command.extend([output_path, "-y"])
 
-    process = subprocess.Popen(
-        command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"Started transcoding process with PID: {process.pid}")
 
     try:
@@ -69,7 +70,5 @@ def start_transcoding(
             process.terminate()
             process.wait(timeout=5)  # Wait up to 5 seconds for graceful termination
         except subprocess.TimeoutExpired:
-            print(
-                f"Process (PID: {process.pid}) did not terminate gracefully. Killing..."
-            )
+            print(f"Process (PID: {process.pid}) did not terminate gracefully. Killing...")
             process.kill()

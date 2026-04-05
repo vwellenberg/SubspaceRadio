@@ -1,18 +1,17 @@
 import json
-from pathlib import Path
 import time
-import requests
-from typing import Any
 from hashlib import md5
+from typing import Any
 from urllib.parse import quote_plus
 
+import requests
+
 from swingmusic.config import UserConfig
+from swingmusic.logger import log
 from swingmusic.models.track import Track
+from swingmusic.plugins import Plugin, plugin_method
 from swingmusic.settings import Paths
 from swingmusic.utils.threading import background
-from swingmusic.plugins import Plugin, plugin_method
-
-from swingmusic.logger import log
 
 
 class LastFmPlugin(Plugin):
@@ -50,9 +49,7 @@ class LastFmPlugin(Plugin):
 
         data["api_sig"] = self.get_api_signature(data)
 
-        final_url = (
-            url + "&" + "&".join(f"{k}={quote_plus(str(v))}" for k, v in data.items())
-        )
+        final_url = url + "&" + "&".join(f"{k}={quote_plus(str(v))}" for k, v in data.items())
 
         return requests.post(final_url)
 
@@ -120,10 +117,7 @@ class LastFmPlugin(Plugin):
                 self.config.lastfmSessionKeys = self.config.lastfmSessionKeys
                 return False
 
-        if res_json.get("scrobbles", {}).get("@attr", {}).get("accepted") == 1:
-            return True
-
-        return False
+        return res_json.get("scrobbles", {}).get("@attr", {}).get("accepted") == 1
 
     # SECTION: Persistence
     def dump_scrobble(self, data: dict[str, Any]):
@@ -152,7 +146,7 @@ class LastFmPlugin(Plugin):
 
         try:
             for file in dump_dir.iterdir():
-                with open(file, "r") as f:
+                with open(file) as f:
                     data = json.load(f)
                     success = self.post_scrobble_data(data)
 

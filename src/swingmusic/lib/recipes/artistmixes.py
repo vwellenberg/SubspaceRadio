@@ -30,9 +30,7 @@ class ArtistMixes(HomepageRoutine):
                 if custom_mix:
                     custom_mixes.append(custom_mix)
 
-            HomepageStore.set_mixes(
-                custom_mixes, entrykey="custom_mixes", userid=user.id
-            )
+            HomepageStore.set_mixes(custom_mixes, entrykey="custom_mixes", userid=user.id)
 
     def __init__(self) -> None:
         super().__init__()

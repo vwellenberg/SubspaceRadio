@@ -4,12 +4,12 @@ Applies migrations.
 """
 
 from sqlalchemy import create_engine
+
+from swingmusic.db import create_all_tables
+from swingmusic.db.engine import DbEngine
 from swingmusic.db.userdata import UserTable
 from swingmusic.migrations import apply_migrations
 from swingmusic.settings import Paths
-
-from swingmusic.db.engine import DbEngine
-from swingmusic.db import create_all_tables
 
 
 def run_migrations():

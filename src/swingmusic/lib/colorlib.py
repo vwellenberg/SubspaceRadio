@@ -1,22 +1,24 @@
 """
 Contains everything that deals with image colour extraction.
 """
+
 import logging
 import os
 import pathlib
+from collections.abc import Generator
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 
 import colorgram
-from pathlib import Path
-from typing import Generator
-from swingmusic.utils.progressbar import tqdm
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from swingmusic import settings
-from swingmusic.store.albums import AlbumStore
 from swingmusic.db.userdata import LibDataTable
+from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
+from swingmusic.utils.progressbar import tqdm
 
 log = logging.getLogger(__name__)
+
 
 def get_image_colors(image: pathlib.Path, count=1) -> list[str]:
     """
@@ -131,9 +133,7 @@ class ColorProcessor:
 
         self._process_colors_parallel(items_needing_colors)
 
-    def _get_items_needing_colors(
-        self, existing_colors: set
-    ) -> Generator[dict, None, None]:
+    def _get_items_needing_colors(self, existing_colors: set) -> Generator[dict, None, None]:
         """
         Generator that yields items needing color processing.
         """
@@ -168,9 +168,7 @@ class ColorProcessor:
 
         with ProcessPoolExecutor(max_workers=cpus) as executor:
             # Submit all jobs
-            future_to_item = {
-                executor.submit(extract_color_worker, item): item for item in items_list
-            }
+            future_to_item = {executor.submit(extract_color_worker, item): item for item in items_list}
 
             batch = []
             processed_count = 0
@@ -190,9 +188,7 @@ class ColorProcessor:
                         batch.append(result)
 
                     # Process batch when it reaches batch_size or we're done
-                    if len(batch) >= batch_size or processed_count + 1 >= len(
-                        items_list
-                    ):
+                    if len(batch) >= batch_size or processed_count + 1 >= len(items_list):
                         if batch:
                             self._process_batch(batch)
                             batch = []
@@ -231,9 +227,7 @@ class ColorProcessor:
                     }
                 )
             else:
-                db_updates.append(
-                    {"itemhash": self.item_type + item_hash, "color": color}
-                )
+                db_updates.append({"itemhash": self.item_type + item_hash, "color": color})
 
         # Batch database operations
         if db_inserts:

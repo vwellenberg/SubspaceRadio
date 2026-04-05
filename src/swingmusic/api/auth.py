@@ -1,6 +1,6 @@
-import json
-from functools import wraps
 import sqlite3
+from functools import wraps
+
 from flask import current_app, jsonify
 from flask_jwt_extended import (
     create_access_token,
@@ -10,14 +10,13 @@ from flask_jwt_extended import (
     jwt_required,
     set_access_cookies,
 )
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
 
+from swingmusic.config import UserConfig
 from swingmusic.db.userdata import UserTable
 from swingmusic.store.homepage import HomepageStore
 from swingmusic.utils.auth import check_password, hash_password
-from swingmusic.config import UserConfig
 
 bp_tag = Tag(name="Auth", description="Authentication stuff")
 api = APIBlueprint("auth", __name__, url_prefix="/auth", abp_tags=[bp_tag])
@@ -116,7 +115,7 @@ def pair_with_code(query: PairDeviceQuery):
     Get an access token by sending a pair code. NOTE: A code can only be used once!
     """
     global pair_token
-    token = pair_token.get(query.code, None)
+    token = pair_token.get(query.code)
 
     if token:
         pair_token = {}
@@ -182,7 +181,7 @@ def update_profile(body: UpdateProfileBody):
                 return {"msg": "Cannot remove the only admin"}, 400
 
         # guest roles cannot be updated
-        _user = [u for u in all_users if u.id == user["id"]][0]
+        _user = next(u for u in all_users if u.id == user["id"])
         if "guest" in _user.roles:
             return {"msg": "Cannot update guest user"}, 400
 
@@ -193,7 +192,7 @@ def update_profile(body: UpdateProfileBody):
     clean_user = {k: v for k, v in user.items() if v}
 
     # finally, convert roles to json string
-    # doing it here to prevent deleting roles from clean user 
+    # doing it here to prevent deleting roles from clean user
     # when body.roles is an empty list
     if body.roles is not None:
         clean_user["roles"] = body.roles
@@ -301,9 +300,7 @@ def logout():
 
 
 class GetAllUsersQuery(BaseModel):
-    simplified: bool = Field(
-        False, description="Whether to return simplified user data"
-    )
+    simplified: bool = Field(False, description="Whether to return simplified user data")
 
 
 @api.get("/users")
@@ -325,9 +322,7 @@ def get_all_users(query: GetAllUsersQuery):
 
     users = [u for u in UserTable.get_all()]
     is_admin = current_user and "admin" in current_user["roles"]
-    settings["enableGuest"] = [
-        user for user in users if user.username == "guest"
-    ].__len__() > 0
+    settings["enableGuest"] = [user for user in users if user.username == "guest"].__len__() > 0
 
     # if user is admin, also return settings
     if is_admin:
@@ -336,15 +331,7 @@ def get_all_users(query: GetAllUsersQuery):
         }
 
     # if is normal user, return empty response
-    elif current_user:
-        return res
-
-    # if not logged in and showing users on login is disabled, return empty response
-    elif (
-        not current_user
-        and not settings["usersOnLogin"]
-        and not settings["enableGuest"]
-    ):
+    elif current_user or (not current_user and not settings["usersOnLogin"] and not settings["enableGuest"]):
         return res
 
     # remove guest user

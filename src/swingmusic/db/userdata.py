@@ -1,7 +1,8 @@
-from dataclasses import asdict
 import datetime
-import json
-from typing import Any, Iterable, Literal
+from collections.abc import Iterable
+from dataclasses import asdict
+from typing import Any, Literal
+
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -15,9 +16,9 @@ from sqlalchemy import (
     select,
     update,
 )
-
 from sqlalchemy.orm import Mapped, mapped_column
 
+from swingmusic.db import Base
 from swingmusic.db.engine import DbEngine
 from swingmusic.db.utils import (
     favorite_to_dataclass,
@@ -28,8 +29,6 @@ from swingmusic.db.utils import (
     tracklog_to_dataclass,
     user_to_dataclass,
 )
-
-from swingmusic.db import Base
 from swingmusic.models.mix import Mix
 from swingmusic.utils.auth import get_current_userid, hash_password
 
@@ -42,9 +41,7 @@ class UserTable(Base):
     password: Mapped[str] = mapped_column(String())
     username: Mapped[str] = mapped_column(String(), index=True)
     roles: Mapped[list[str]] = mapped_column(JSON(), default_factory=lambda: [])
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def get_all(cls):
@@ -91,17 +88,11 @@ class UserTable(Base):
 
     @classmethod
     def update_one(cls, user: dict[str, Any]):
-        return next(
-            cls.execute(
-                update(cls).where(cls.id == user["id"]).values(user), commit=True
-            )
-        )
+        return next(cls.execute(update(cls).where(cls.id == user["id"]).values(user), commit=True))
 
     @classmethod
     def remove_by_username(cls, username: str):
-        return next(
-            cls.execute(delete(cls).where(cls.username == username), commit=True)
-        )
+        return next(cls.execute(delete(cls).where(cls.username == username), commit=True))
 
 
 class PluginTable(Base):
@@ -122,11 +113,7 @@ class PluginTable(Base):
 
     @classmethod
     def activate(cls, name: str, value: bool):
-        return next(
-            cls.execute(
-                update(cls).where(cls.name == name).values(active=value), commit=True
-            )
-        )
+        return next(cls.execute(update(cls).where(cls.name == name).values(active=value), commit=True))
 
     @classmethod
     def get_by_name(cls, name: str):
@@ -168,9 +155,7 @@ class SimilarArtistTable(Base):
 
         with DbEngine.manager() as conn:
             result = conn.execute(
-                select(cls.artisthash)
-                .where(cls.artisthash == artisthash)
-                .execution_options(yield_per=100)
+                select(cls.artisthash).where(cls.artisthash == artisthash).execution_options(yield_per=100)
             )
 
             return len(result.scalars().all()) > 0
@@ -194,20 +179,14 @@ class FavoritesTable(Base):
     hash: Mapped[str] = mapped_column(String(), unique=True)
     type: Mapped[str] = mapped_column(String(), index=True)
     timestamp: Mapped[int] = mapped_column(Integer(), index=True)
-    userid: Mapped[int] = mapped_column(
-        Integer(), ForeignKey("user.id", ondelete="cascade"), default=1, index=True
-    )
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    userid: Mapped[int] = mapped_column(Integer(), ForeignKey("user.id", ondelete="cascade"), default=1, index=True)
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def get_all(cls, with_user: bool = False):
         with DbEngine.manager() as conn:
             if with_user:
-                result = conn.execute(
-                    select(cls).where(cls.userid == get_current_userid())
-                )
+                result = conn.execute(select(cls).where(cls.userid == get_current_userid()))
             else:
                 result = conn.execute(select(cls))
 
@@ -231,27 +210,20 @@ class FavoritesTable(Base):
     def remove_item(cls, item: dict[str, Any]):
         return next(
             cls.execute(
-                delete(cls).where(
-                    (cls.hash == item["hash"])
-                    | (cls.hash == f"{item['type']}_{item['hash']}")
-                ),
+                delete(cls).where((cls.hash == item["hash"]) | (cls.hash == f"{item['type']}_{item['hash']}")),
                 commit=True,
             )
         )
 
     @classmethod
     def check_exists(cls, hash: str, type: str):
-        result = cls.execute(
-            select(cls).where((cls.hash == hash) | (cls.hash == f"{type}_{hash}"))
-        )
+        result = cls.execute(select(cls).where((cls.hash == hash) | (cls.hash == f"{type}_{hash}")))
 
         return next(result).scalar() is not None
 
     @classmethod
     def get_by_hash(cls, hash: str, type: str):
-        result = cls.execute(
-            select(cls).where((cls.hash == hash) | (cls.hash == f"{type}_{hash}"))
-        )
+        result = cls.execute(select(cls).where((cls.hash == hash) | (cls.hash == f"{type}_{hash}")))
 
         return next(result).scalars().all()
 
@@ -297,7 +269,7 @@ class FavoritesTable(Base):
     def count_favs_in_period(cls, start_time: int, end_time: int):
         result = cls.execute(
             select(func.count(cls.id))
-            .where((cls.userid == get_current_userid()))
+            .where(cls.userid == get_current_userid())
             .where(and_(cls.timestamp >= start_time, cls.timestamp <= end_time))
         )
 
@@ -316,9 +288,7 @@ class FavoritesTable(Base):
 
     @classmethod
     def get_last_trackhash(cls):
-        result = cls.execute(
-            select(cls.hash).where(cls.type == "track").order_by(cls.timestamp.desc())
-        )
+        result = cls.execute(select(cls.hash).where(cls.type == "track").order_by(cls.timestamp.desc()))
 
         return next(result).scalar()
 
@@ -331,12 +301,8 @@ class ScrobbleTable(Base):
     duration: Mapped[int] = mapped_column(Integer())
     timestamp: Mapped[int] = mapped_column(Integer())
     source: Mapped[str] = mapped_column(String())
-    userid: Mapped[int] = mapped_column(
-        Integer(), ForeignKey("user.id", ondelete="cascade"), index=True
-    )
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    userid: Mapped[int] = mapped_column(Integer(), ForeignKey("user.id", ondelete="cascade"), index=True)
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def add(cls, item: dict[str, Any]):
@@ -379,9 +345,7 @@ class ScrobbleTable(Base):
 
     @classmethod
     def get_last_entry(cls, userid: int):
-        result = cls.execute(
-            select(cls).where(cls.userid == userid).order_by(cls.timestamp.desc())
-        )
+        result = cls.execute(select(cls).where(cls.userid == userid).order_by(cls.timestamp.desc()))
         res = next(result).scalar()
 
         if res:
@@ -395,23 +359,15 @@ class PlaylistTable(Base):
     name: Mapped[str] = mapped_column(String(), index=True)
     last_updated: Mapped[int] = mapped_column(Integer())
     image: Mapped[str] = mapped_column(String(), nullable=True)
-    userid: Mapped[int] = mapped_column(
-        Integer(), ForeignKey("user.id", ondelete="cascade")
-    )
+    userid: Mapped[int] = mapped_column(Integer(), ForeignKey("user.id", ondelete="cascade"))
     settings: Mapped[dict[str, Any]] = mapped_column(JSON())
     trackhashes: Mapped[list[str]] = mapped_column(JSON(), default_factory=list)
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def get_all(cls, current_user: bool = True):
         if current_user:
-            result = cls.execute(
-                select(cls)
-                .where(cls.userid == get_current_userid())
-                .execution_options(yield_per=100)
-            )
+            result = cls.execute(select(cls).where(cls.userid == get_current_userid()).execution_options(yield_per=100))
         else:
             result = cls.execute(select(cls).execution_options(yield_per=100))
 
@@ -427,9 +383,7 @@ class PlaylistTable(Base):
 
     @classmethod
     def check_exists_by_name(cls, name: str):
-        result = cls.execute(
-            select(cls).where((cls.name == name) & (cls.userid == get_current_userid()))
-        )
+        result = cls.execute(select(cls).where((cls.name == name) & (cls.userid == get_current_userid())))
         return next(result).scalar() is not None
 
     @classmethod
@@ -448,11 +402,7 @@ class PlaylistTable(Base):
 
     @classmethod
     def get_trackhashes(cls, id: int):
-        result = cls.execute(
-            select(cls.trackhashes).where(
-                (cls.id == id) & (cls.userid == get_current_userid())
-            )
-        )
+        result = cls.execute(select(cls.trackhashes).where((cls.id == id) & (cls.userid == get_current_userid())))
         return next(result).scalar()
 
     @classmethod
@@ -475,9 +425,7 @@ class PlaylistTable(Base):
 
     @classmethod
     def get_by_id(cls, id: int):
-        result = cls.execute(
-            select(cls).where((cls.id == id) & (cls.userid == get_current_userid()))
-        )
+        result = cls.execute(select(cls).where((cls.id == id) & (cls.userid == get_current_userid())))
         result = next(result).scalar()
 
         if result:
@@ -487,9 +435,7 @@ class PlaylistTable(Base):
     def update_one(cls, id: int, playlist: dict[str, Any]):
         return next(
             cls.execute(
-                update(cls)
-                .where((cls.id == id) & (cls.userid == get_current_userid()))
-                .values(playlist),
+                update(cls).where((cls.id == id) & (cls.userid == get_current_userid())).values(playlist),
                 commit=True,
             )
         )
@@ -498,9 +444,7 @@ class PlaylistTable(Base):
     def update_settings(cls, id: int, settings: dict[str, Any]):
         return next(
             cls.execute(
-                update(cls)
-                .where((cls.id == id) & (cls.userid == get_current_userid()))
-                .values(settings=settings),
+                update(cls).where((cls.id == id) & (cls.userid == get_current_userid())).values(settings=settings),
                 commit=True,
             )
         )
@@ -509,9 +453,7 @@ class PlaylistTable(Base):
     def remove_image(cls, id: int):
         return next(
             cls.execute(
-                update(cls)
-                .where((cls.id == id) & (cls.userid == get_current_userid()))
-                .values(image=None),
+                update(cls).where((cls.id == id) & (cls.userid == get_current_userid())).values(image=None),
                 commit=True,
             )
         )
@@ -526,23 +468,15 @@ class LibDataTable(Base):
     color: Mapped[str] = mapped_column(String(), nullable=True)
     bio: Mapped[str] = mapped_column(String(), nullable=True)
     info: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True)
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def update_one(cls, hash: str, data: dict[str, Any]):
-        return next(
-            cls.execute(
-                update(cls).where(cls.itemhash == hash).values(data), commit=True
-            )
-        )
+        return next(cls.execute(update(cls).where(cls.itemhash == hash).values(data), commit=True))
 
     @classmethod
     def find_one(cls, hash: str, type: Literal["album", "artist"]):
-        result = cls.execute(
-            select(cls).where((cls.itemhash == type + hash) & (cls.itemtype == type))
-        )
+        result = cls.execute(select(cls).where((cls.itemhash == type + hash) & (cls.itemtype == type)))
         return next(result).scalar()
 
     @classmethod
@@ -562,23 +496,15 @@ class MixTable(Base):
     description: Mapped[str] = mapped_column(String())
     timestamp: Mapped[int] = mapped_column(Integer())
     sourcehash: Mapped[str] = mapped_column(String(), unique=True, index=True)
-    userid: Mapped[int] = mapped_column(
-        Integer(), ForeignKey("user.id", ondelete="cascade"), index=True
-    )
+    userid: Mapped[int] = mapped_column(Integer(), ForeignKey("user.id", ondelete="cascade"), index=True)
     saved: Mapped[bool] = mapped_column(Boolean(), default=False)
     tracks: Mapped[list[str]] = mapped_column(JSON(), default_factory=list)
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def get_all(cls, with_userid: bool = False):
         if with_userid:
-            result = cls.execute(
-                select(cls)
-                .where(cls.userid == get_current_userid())
-                .order_by(cls.timestamp.desc())
-            )
+            result = cls.execute(select(cls).where(cls.userid == get_current_userid()).order_by(cls.timestamp.desc()))
         else:
             result = cls.execute(select(cls).order_by(cls.timestamp.desc()))
 
@@ -653,7 +579,7 @@ class MixTable(Base):
         Return all mixes that have the extra.trackmix_saved set to True.
         """
 
-        result = cls.execute(select(cls).where(cls.extra.c.trackmix_saved == True))
+        result = cls.execute(select(cls).where(cls.extra.c.trackmix_saved))
         # return Mix.mixes_to_dataclasses(result.fetchall())
 
         for i in next(result).scalars():
@@ -681,13 +607,9 @@ class CollectionTable(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(), index=True)
-    userid: Mapped[int] = mapped_column(
-        Integer(), ForeignKey("user.id", ondelete="cascade"), index=True
-    )
+    userid: Mapped[int] = mapped_column(Integer(), ForeignKey("user.id", ondelete="cascade"), index=True)
     items: Mapped[list[dict[str, Any]]] = mapped_column(JSON(), default_factory=list)
-    extra: Mapped[dict[str, Any]] = mapped_column(
-        JSON(), nullable=True, default_factory=dict
-    )
+    extra: Mapped[dict[str, Any]] = mapped_column(JSON(), nullable=True, default_factory=dict)
 
     @classmethod
     def to_dict(cls, entry: Any) -> dict[str, Any]:
@@ -704,9 +626,7 @@ class CollectionTable(Base):
 
     @classmethod
     def get_by_id(cls, id: int):
-        result = cls.execute(
-            select(cls).where(and_(cls.id == id, cls.userid == get_current_userid()))
-        )
+        result = cls.execute(select(cls).where(and_(cls.id == id, cls.userid == get_current_userid())))
         res = next(result).scalar()
 
         if res:
@@ -716,9 +636,7 @@ class CollectionTable(Base):
     def delete_by_id(cls, id: int):
         return next(
             cls.execute(
-                delete(cls).where(
-                    and_(cls.id == id, cls.userid == get_current_userid())
-                ),
+                delete(cls).where(and_(cls.id == id, cls.userid == get_current_userid())),
                 commit=True,
             )
         )
@@ -727,9 +645,7 @@ class CollectionTable(Base):
     def update_items(cls, id: int, items: list[dict[str, Any]]):
         return next(
             cls.execute(
-                update(cls)
-                .where(and_(cls.id == id, cls.userid == get_current_userid()))
-                .values(items=items),
+                update(cls).where(and_(cls.id == id, cls.userid == get_current_userid())).values(items=items),
                 commit=True,
             )
         )
@@ -738,11 +654,7 @@ class CollectionTable(Base):
     def update_one(cls, payload: dict[str, Any]):
         return next(
             cls.execute(
-                update(cls)
-                .where(
-                    and_(cls.id == payload["id"], cls.userid == get_current_userid())
-                )
-                .values(payload),
+                update(cls).where(and_(cls.id == payload["id"], cls.userid == get_current_userid())).values(payload),
                 commit=True,
             )
         )

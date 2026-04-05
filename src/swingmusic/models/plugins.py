@@ -7,4 +7,3 @@ class Plugin:
     active: bool
     settings: dict
     extra: dict
-

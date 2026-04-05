@@ -1,18 +1,14 @@
 from typing import Literal
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
 from swingmusic.db.userdata import MixTable
 from swingmusic.plugins.mixes import MixesPlugin
 from swingmusic.store.homepage import HomepageStore
-from swingmusic.store.tracks import TrackStore
-
 
 bp_tag = Tag(name="Mixes Plugin", description="Mixes plugin hehe")
-api = APIBlueprint(
-    "mixesplugin", __name__, url_prefix="/plugins/mixes", abp_tags=[bp_tag]
-)
+api = APIBlueprint("mixesplugin", __name__, url_prefix="/plugins/mixes", abp_tags=[bp_tag])
 
 
 class GetMixesBody(BaseModel):

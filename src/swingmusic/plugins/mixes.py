@@ -1,9 +1,10 @@
-from gettext import ngettext
-from io import BytesIO
 import json
 import random
 import time
+from gettext import ngettext
+from io import BytesIO
 from urllib.parse import quote
+
 import requests
 from PIL import Image
 
@@ -56,10 +57,8 @@ class MixesPlugin(Plugin):
             try:
                 requests.get(self.server, timeout=10)
                 return True
-            except Exception as e:
-                print(
-                    f"Failed to connect to the recommendation server (attempt {attempt + 1}/{max_retries})"
-                )
+            except Exception:
+                print(f"Failed to connect to the recommendation server (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                 continue
@@ -112,9 +111,7 @@ class MixesPlugin(Plugin):
         for track in trackmatches:
             grouped.setdefault(track.weakhash, []).append(track)
 
-        trackmatches = [
-            max(group, key=lambda x: x.bitrate) for group in grouped.values()
-        ]
+        trackmatches = [max(group, key=lambda x: x.bitrate) for group in grouped.values()]
 
         # sort by trackhash order
         trackmatches = sorted(trackmatches, key=lambda x: trackhashes.index(x.weakhash))
@@ -180,23 +177,17 @@ class MixesPlugin(Plugin):
             },
             "last_2_days": {
                 "max": 3,
-                "artists": get_artists_in_period(
-                    last_2_days_start, time.time(), userid
-                ),
+                "artists": get_artists_in_period(last_2_days_start, time.time(), userid),
                 "created": 0,
             },
             "last_7_days": {
                 "max": 4,
-                "artists": get_artists_in_period(
-                    last_7_days_start, time.time(), userid
-                ),
+                "artists": get_artists_in_period(last_7_days_start, time.time(), userid),
                 "created": 0,
             },
             "last_1_month": {
                 "max": 4,
-                "artists": get_artists_in_period(
-                    last_1_month_start, time.time(), userid
-                ),
+                "artists": get_artists_in_period(last_1_month_start, time.time(), userid),
                 "created": 0,
             },
         }
@@ -222,13 +213,9 @@ class MixesPlugin(Plugin):
 
                 # INFO: track['tracks'] is a dict of trackhashes and their counts
                 # get the trackhashes sorted by count
-                trackhashes = sorted(
-                    artist["tracks"], key=lambda x: artist["tracks"][x], reverse=True
-                )
+                trackhashes = sorted(artist["tracks"], key=lambda x: artist["tracks"][x], reverse=True)
 
-                mix = self.create_artist_mix(
-                    artist, trackhashes[: self.MAX_TRACKS_TO_FETCH], userid=userid
-                )
+                mix = self.create_artist_mix(artist, trackhashes[: self.MAX_TRACKS_TO_FETCH], userid=userid)
 
                 if mix:
                     mixes.append(mix)
@@ -248,10 +235,7 @@ class MixesPlugin(Plugin):
 
         for track in tracks:
             if len(first_4_artists) < 4:
-                if (
-                    track.artists[0]["artisthash"] != artishash
-                    and track.artists[0]["artisthash"] not in indexed
-                ):
+                if track.artists[0]["artisthash"] != artishash and track.artists[0]["artisthash"] not in indexed:
                     first_4_artists.append(track.artists[0])
                     indexed.add(track.artists[0]["artisthash"])
 
@@ -263,9 +247,7 @@ class MixesPlugin(Plugin):
 
         return f"Featuring {tracks[0].artists[0]['name']}"
 
-    def create_artist_mix(
-        self, artist: dict[str, str], trackhashes: list[str], userid: int
-    ):
+    def create_artist_mix(self, artist: dict[str, str], trackhashes: list[str], userid: int):
         """
         Given an artist dict, creates an artist mix.
         """
@@ -279,9 +261,7 @@ class MixesPlugin(Plugin):
         # sourcetracks = tracks[: self.MAX_TRACKS_TO_FETCH]
 
         # INFO: Sort the trackhashes when creating the sourcehash
-        sourcehash = create_hash(
-            *sorted(trackhashes, key=lambda x: trackhashes.index(x))
-        )
+        sourcehash = create_hash(*sorted(trackhashes, key=lambda x: trackhashes.index(x)))
 
         db_mix = MixTable.get_by_sourcehash(sourcehash)
         if db_mix:
@@ -330,9 +310,7 @@ class MixesPlugin(Plugin):
 
     def download_artist_image(self, artist: Artist):
         try:
-            res = requests.get(
-                f"{self.server}/mix/image?artist={quote(artist.name)}&type=Artist"
-            )
+            res = requests.get(f"{self.server}/mix/image?artist={quote(artist.name)}&type=Artist")
         except requests.exceptions.ConnectionError:
             return None
 
@@ -385,20 +363,14 @@ class MixesPlugin(Plugin):
         """
 
         mixtracks = []
-        albummatches = (
-            a
-            for a in AlbumStore.albummap.values()
-            if a.album.weakhash in similar_albums
-        )
+        albummatches = (a for a in AlbumStore.albummap.values() if a.album.weakhash in similar_albums)
 
         for match in albummatches:
             if len(mixtracks) >= limit:
                 return mixtracks
 
             albumtracks = [
-                t
-                for t in TrackStore.get_tracks_by_trackhashes(match.trackhashes)
-                if t.weakhash not in omit_trackhashes
+                t for t in TrackStore.get_tracks_by_trackhashes(match.trackhashes) if t.weakhash not in omit_trackhashes
             ]
 
             if len(albumtracks) == 0:
@@ -407,20 +379,14 @@ class MixesPlugin(Plugin):
             sample = random.sample(albumtracks, k=1)
             mixtracks.extend(sample)
 
-        artistmatches = (
-            a
-            for a in ArtistStore.artistmap.values()
-            if a.artist.artisthash in similar_artists
-        )
+        artistmatches = (a for a in ArtistStore.artistmap.values() if a.artist.artisthash in similar_artists)
 
         for match in artistmatches:
             if len(mixtracks) >= limit:
                 return mixtracks
 
             artisttracks = [
-                t
-                for t in TrackStore.get_tracks_by_trackhashes(match.trackhashes)
-                if t.weakhash not in omit_trackhashes
+                t for t in TrackStore.get_tracks_by_trackhashes(match.trackhashes) if t.weakhash not in omit_trackhashes
             ]
 
             if len(artisttracks) == 0:
@@ -457,9 +423,7 @@ class MixesPlugin(Plugin):
             return None
 
         og_track = og_track.get_best()
-        tracks = [og_track] + TrackStore.get_tracks_by_trackhashes(
-            mix.tracks[cls.MIX_TRACKS_LENGTH :]
-        )
+        tracks = [og_track, *TrackStore.get_tracks_by_trackhashes(mix.tracks[cls.MIX_TRACKS_LENGTH :])]
 
         trackmix = Mix(
             id=f"t{mix.userid}{mix.extra['artisthash']}",
@@ -599,14 +563,11 @@ class MixesPlugin(Plugin):
             )
 
         because_you_listened_to_artist = {
-            "title": "Because you listened to "
-            + pivot_artist.name,
+            "title": "Because you listened to " + pivot_artist.name,
             "items": albums[pivot_artist.artisthash][:15],
         }
 
         # Flatten list of artists and remove duplicates by artisthash
-        all_artists = []
-        seen = set()
 
         # for artist_list in artists.values():
         #     for artist in artist_list:

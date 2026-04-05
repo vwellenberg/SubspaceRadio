@@ -1,11 +1,11 @@
 import os
 from functools import partial
+from logging import getLogger
 from multiprocessing import Pool, cpu_count
 
 from swingmusic import settings
 from swingmusic.config import UserConfig
 from swingmusic.db.libdata import TrackTable
-
 from swingmusic.lib.taglib import extract_thumb, get_tags
 from swingmusic.models.album import Album
 from swingmusic.models.artist import Artist
@@ -18,8 +18,6 @@ from swingmusic.utils.parsers import get_base_album_title
 from swingmusic.utils.progressbar import tqdm
 from swingmusic.utils.remove_duplicates import remove_duplicates
 
-
-from logging import getLogger
 log = getLogger(__name__)
 
 
@@ -43,12 +41,7 @@ class IndexTracks:
         dirs_to_scan = UserConfig().rootDirs
 
         if len(dirs_to_scan) == 0:
-            log.warning(
-                (
-                    "The root directory is not configured. "
-                    + "Open the app in your webbrowser to configure."
-                )
-            )
+            log.warning("The root directory is not configured. " + "Open the app in your webbrowser to configure.")
             return
 
         try:
@@ -77,9 +70,7 @@ class IndexTracks:
         """
         for track in tracks:
             try:
-                extract_thumb(
-                    track["filepath"], track["albumhash"] + ".webp", overwrite=True, paths=settings.Paths()
-                )
+                extract_thumb(track["filepath"], track["albumhash"] + ".webp", overwrite=True, paths=settings.Paths())
             except FileNotFoundError:
                 continue
 
@@ -126,7 +117,6 @@ class IndexTracks:
 
         return unmodified_paths, modified_tracks
 
-
     def tag_untagged(self, files: set[str]):
         config = UserConfig()
 
@@ -153,10 +143,10 @@ class IndexTracks:
         print("Done")
 
 
-
 #
 # Create functions
 #
+
 
 def create_albums(_trackhashes: list[str] = []) -> list[tuple[Album, set[str]]]:
     """
@@ -233,7 +223,7 @@ def create_albums(_trackhashes: list[str] = []) -> list[tuple[Album, set[str]]]:
     return list(albums.values())
 
 
-def create_artists( artisthashes: list[str]) -> list[tuple[Artist, set[str], set[str]]]:
+def create_artists(artisthashes: list[str]) -> list[tuple[Artist, set[str], set[str]]]:
     """
     Creates artist objects using the indexed tracks. Takes in an optional
     list of artisthashes to create the artists from. If no list is provided,
@@ -247,9 +237,7 @@ def create_artists( artisthashes: list[str]) -> list[tuple[Artist, set[str], set
     """
 
     if artisthashes:
-        all_tracks: list[Track] = flatten(
-            [TrackStore.get_tracks_by_artisthash(hash) for hash in artisthashes]
-        )
+        all_tracks: list[Track] = flatten([TrackStore.get_tracks_by_artisthash(hash) for hash in artisthashes])
     else:
         all_tracks: list[Track] = TrackStore.get_flat_list()
 
@@ -280,9 +268,7 @@ def create_artists( artisthashes: list[str]) -> list[tuple[Artist, set[str], set
                     "playcount": track.playcount,
                     "playduration": track.playduration,
                     "trackcount": None,
-                    "tracks": (
-                        {track.trackhash} if thisartist.get("in_track", True) else set()
-                    ),
+                    "tracks": ({track.trackhash} if thisartist.get("in_track", True) else set()),
                     "extra": {},
                 }
             else:

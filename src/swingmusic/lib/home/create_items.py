@@ -1,5 +1,6 @@
 import os
 import pathlib
+
 from swingmusic.db.userdata import PlaylistTable
 from swingmusic.lib.home import find_mix
 from swingmusic.lib.home.recentlyadded import get_recently_added_playlist

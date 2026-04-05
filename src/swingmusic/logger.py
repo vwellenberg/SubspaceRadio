@@ -1,13 +1,13 @@
 """
 Logger module
 """
-from pathlib import Path
-import logging
+
 import datetime as dt
 import json
+import logging
 import logging.config
 import logging.handlers
-
+from pathlib import Path
 
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",
@@ -37,8 +37,11 @@ LOG_RECORD_BUILTIN_ATTRS = {
 
 
 class JsonFormat(logging.Formatter):
-    def __init__(self, *, fmt_keys: dict[str, str] | None = None,):
-
+    def __init__(
+        self,
+        *,
+        fmt_keys: dict[str, str] | None = None,
+    ):
         super().__init__()
         self.fmt_keys = fmt_keys or {}
 
@@ -52,8 +55,8 @@ class JsonFormat(logging.Formatter):
             "name": record.name,
             "line": record.lineno,
             "message": record.getMessage(),
-            "timestamp": dt.datetime.fromtimestamp(record.created, tz=dt.timezone.utc).isoformat(),
-            "who": record.name
+            "timestamp": dt.datetime.fromtimestamp(record.created, tz=dt.UTC).isoformat(),
+            "who": record.name,
         }
 
         if record.exc_info is not None:
@@ -101,15 +104,18 @@ class CustomFormatter(logging.Formatter):
         logging.CRITICAL: bold_red + format_ + reset,
     }
 
-    def __init__(self, *, fmt_keys: dict[str, str] | None = None,):
-
+    def __init__(
+        self,
+        *,
+        fmt_keys: dict[str, str] | None = None,
+    ):
         super().__init__()
         self.fmt_keys = fmt_keys or {}
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
-        #record.exc_info = None
-        #record.exc_text = None
+        # record.exc_info = None
+        # record.exc_text = None
         self._style = logging.PercentStyle(log_fmt)
         self._fmt = self._style._fmt
 
@@ -124,10 +130,10 @@ class CustomFormatter(logging.Formatter):
     def formatStack(self, stack_info):
         return ""
 
+
 CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "formatters": {
         "json": {
             "()": JsonFormat,
@@ -138,8 +144,8 @@ CONFIG = {
                 "logger": "name",
                 "module": "module",
                 "function": "funcName",
-                "line": "lineno"
-            }
+                "line": "lineno",
+            },
         },
         "custom": {
             "()": CustomFormatter,
@@ -150,55 +156,42 @@ CONFIG = {
                 "logger": "name",
                 "module": "module",
                 "function": "funcName",
-                "line": "lineno"
-            }
-        }
+                "line": "lineno",
+            },
+        },
     },
     "handlers": {
         "stdout": {
             "class": "logging.StreamHandler",
             "level": "INFO",
             "formatter": "custom",
-            "stream": "ext://sys.stderr"
+            "stream": "ext://sys.stderr",
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "json",
-            "maxBytes": 5*1024*1024, # 5 MB
-            "backupCount": 5
+            "maxBytes": 5 * 1024 * 1024,  # 5 MB
+            "backupCount": 5,
         },
         "remote": {
             "class": "logging.handlers.SocketHandler",
             "level": "DEBUG",
             "formatter": "json",
             "host": "127.0.0.2",
-            "port": "19996"
-        }
+            "port": "19996",
+        },
     },
     "loggers": {
-        "swingmusic": {
-            "level": "DEBUG",
-            "propagate": False,
-            "handlers": [
-                "stdout",
-                "file"
-            ]
-        },
-        "waitress": {
-            "level": "ERROR",
-            "propagate": False,
-            "handlers": [
-                "stdout",
-                "file"
-            ]
-        }
-    }
+        "swingmusic": {"level": "DEBUG", "propagate": False, "handlers": ["stdout", "file"]},
+        "waitress": {"level": "ERROR", "propagate": False, "handlers": ["stdout", "file"]},
+    },
 }
 
 log = None
 
-def setup_logger(app_dir:Path, debug=False):
+
+def setup_logger(app_dir: Path, debug=False):
     """
     setup logger
     needs to be called at the beginning and at least once
@@ -221,7 +214,7 @@ def setup_logger(app_dir:Path, debug=False):
     # enable socket log
     if debug:
         logging.warning("YOU ARE IN DEBUG MODE.")
-        for key in CONFIG["loggers"].keys():
+        for key in CONFIG["loggers"]:
             CONFIG["loggers"][key]["handlers"].append("remote")
             CONFIG["loggers"][key]["level"] = "DEBUG"
 

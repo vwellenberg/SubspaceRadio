@@ -3,7 +3,6 @@ Contains all the artist(s) routes.
 """
 
 import math
-from pprint import pprint
 import random
 from datetime import datetime
 from itertools import groupby
@@ -11,21 +10,19 @@ from typing import Any
 
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import Field
+
 from swingmusic.api.apischemas import (
     AlbumLimitSchema,
     ArtistHashSchema,
     ArtistLimitSchema,
     TrackLimitSchema,
 )
-
 from swingmusic.config import UserConfig
 from swingmusic.db.userdata import SimilarArtistTable
 from swingmusic.lib.sortlib import sort_tracks
-
 from swingmusic.serializers.album import serialize_for_card_many
-from swingmusic.serializers.artist import serialize_for_cards, serialize_for_card
+from swingmusic.serializers.artist import serialize_for_card, serialize_for_cards
 from swingmusic.serializers.track import serialize_track
-
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
@@ -36,9 +33,7 @@ api = APIBlueprint("artist", __name__, url_prefix="/artist", abp_tags=[bp_tag])
 
 
 class GetArtistAlbumsQuery(AlbumLimitSchema):
-    all: bool = Field(
-        description="Whether to ignore albumlimit and return all albums", default=False
-    )
+    all: bool = Field(description="Whether to ignore albumlimit and return all albums", default=False)
 
 
 class GetArtistQuery(TrackLimitSchema, GetArtistAlbumsQuery):
@@ -89,11 +84,7 @@ def get_artist(path: ArtistHashSchema, query: GetArtistQuery):
     tracks = [
         {
             **serialize_track(t),
-            "help_text": (
-                "unplayed"
-                if t.playcount == 0
-                else f"{t.playcount} play{'' if t.playcount == 1 else 's'}"
-            ),
+            "help_text": ("unplayed" if t.playcount == 0 else f"{t.playcount} play{'' if t.playcount == 1 else 's'}"),
         }
         for t in tracks
     ]
@@ -134,9 +125,7 @@ def get_artist_albums(path: ArtistHashSchema, query: GetArtistAlbumsQuery):
     albums = AlbumStore.get_albums_by_hashes(entry.albumhashes)
     tracks = TrackStore.get_tracks_by_trackhashes(entry.trackhashes)
 
-    missing_albumhashes = {
-        t.albumhash for t in tracks if t.albumhash not in {a.albumhash for a in albums}
-    }
+    missing_albumhashes = {t.albumhash for t in tracks if t.albumhash not in {a.albumhash for a in albums}}
 
     albums.extend(AlbumStore.get_albums_by_hashes(missing_albumhashes))
     albumdict = {a.albumhash: a for a in albums}
@@ -164,10 +153,7 @@ def get_artist_albums(path: ArtistHashSchema, query: GetArtistAlbumsQuery):
             res["singles_and_eps"].append(album)
         elif album.type == "compilation":
             res["compilations"].append(album)
-        elif (
-            album.albumhash in missing_albumhashes
-            or artisthash not in album.artisthashes
-        ):
+        elif album.albumhash in missing_albumhashes or artisthash not in album.artisthashes:
             res["appearances"].append(album)
         else:
             res["albums"].append(album)
@@ -195,11 +181,7 @@ def get_all_artist_tracks(path: ArtistHashSchema):
     tracks = [
         {
             **serialize_track(t),
-            "help_text": (
-                "unplayed"
-                if t.playcount == 0
-                else f"{t.playcount} play{'' if t.playcount == 1 else 's'}"
-            ),
+            "help_text": ("unplayed" if t.playcount == 0 else f"{t.playcount} play{'' if t.playcount == 1 else 's'}"),
         }
         for t in tracks
     ]

@@ -4,12 +4,12 @@ from pathlib import Path
 
 from swingmusic.store.tracks import TrackStore
 
-
 # # # # # # # # # # # # # # # # # # # #
 # Functions for parsing lyrics lines  #
 # # # # # # # # # # # # # # # # # # # #
 
-def parse_lyrics_lines(lyrics:str) -> list[dict]:
+
+def parse_lyrics_lines(lyrics: str) -> list[dict]:
     """
     Split lyrics into lines and determine there tag type.
 
@@ -22,19 +22,13 @@ def parse_lyrics_lines(lyrics:str) -> list[dict]:
     :return: {'tag_types', 'body', 'tags'}
     """
 
-
     entries = []
     for line in lyrics.splitlines():
-
-        data = {
-            "tag_types": [],
-            "tags": []
-        }
+        data = {"tag_types": [], "tags": []}
         if line.startswith("["):
-
             # loop until all tags are parsed in line
             while True:
-                if "[" in line and "]" in line: # second tag
+                if "[" in line and "]" in line:  # second tag
                     bracket_content, after_content = line.split("]", 1)
                     bracket_content = bracket_content.removeprefix("[")
 
@@ -45,10 +39,10 @@ def parse_lyrics_lines(lyrics:str) -> list[dict]:
 
                     # check which tag type it is
                     if bracket_content[0].isnumeric():
-                        data["tag_types"].append( "time" )
+                        data["tag_types"].append("time")
 
                     elif bracket_content[0].isalpha():
-                        data["tag_types"].append( "meta" )
+                        data["tag_types"].append("meta")
                 else:
                     # if no brackets inside the line, there is also no tag.
                     break
@@ -68,7 +62,7 @@ def parse_lyrics_lines(lyrics:str) -> list[dict]:
     return entries
 
 
-def filter_parse_lyrics_lines(lines:list[dict], tag_types:list|str) -> list[dict]:
+def filter_parse_lyrics_lines(lines: list[dict], tag_types: list | str) -> list[dict]:
     """
     filter all lyrics line to only contain given tags
 
@@ -83,11 +77,8 @@ def filter_parse_lyrics_lines(lines:list[dict], tag_types:list|str) -> list[dict
 
     # line = {"tags", "body", "tag_types"}
     for line in lines:
-        group = {
-            "tag_types": [],
-            "tags": []
-        }
-        for (tag, tag_type) in zip(line["tags"], line["tag_types"]):
+        group = {"tag_types": [], "tags": []}
+        for tag, tag_type in zip(line["tags"], line["tag_types"]):
             if tag_type in tag_types:
                 group["tag_types"].append(tag_type)
                 group["tags"].append(tag)
@@ -100,7 +91,7 @@ def filter_parse_lyrics_lines(lines:list[dict], tag_types:list|str) -> list[dict
     return found_tags
 
 
-def parse_time_tag(lines:list[dict]) -> list[dict]:
+def parse_time_tag(lines: list[dict]) -> list[dict]:
     """
     Filter time-tags from lines and parse them.
     """
@@ -113,14 +104,16 @@ def parse_time_tag(lines:list[dict]) -> list[dict]:
 
     # line = {"tags", "body", "tag_types"}
     for line in time_tags:
-        for (tag, tag_type) in zip(line["tags"], line["tag_types"]):
+        for tag, tag_type in zip(line["tags"], line["tag_types"]):
             minute, seconds = tag.split(":", 1)
 
-            parsed_times.append({
-            "minute": minute,
-            "seconds": seconds,
-            "body": line["body"],
-            })
+            parsed_times.append(
+                {
+                    "minute": minute,
+                    "seconds": seconds,
+                    "body": line["body"],
+                }
+            )
 
     return parsed_times
 
@@ -131,7 +124,6 @@ def parse_time_tag(lines:list[dict]) -> list[dict]:
 
 
 class Lyrics:
-
     SUPPORTED_METATAGS = {
         "ti": "title",
         "ar": "artist",
@@ -143,17 +135,16 @@ class Lyrics:
         "offset": "offset",
         "re": "recorder",
         "tool": "tool",
-        "ve": "version"
+        "ve": "version",
     }
 
-    lyrics:str
-    parsed_lyrics:list[dict]
-    meta:dict = {}
+    lyrics: str
+    parsed_lyrics: list[dict]
+    meta: dict = {}
 
-    is_synced:bool = False
+    is_synced: bool = False
 
-
-    def __init__(self, lyrics:str=""):
+    def __init__(self, lyrics: str = ""):
         """
 
         :param lyrics: entire lyrics body
@@ -180,7 +171,6 @@ class Lyrics:
                 dict_name = self.SUPPORTED_METATAGS.get(name, name)
                 self.meta[dict_name] = body
 
-
         # check if synced or not.
         # not fail-save:
         # If even just one time tag in the entire lyrics gets flagged as synced
@@ -193,13 +183,14 @@ class Lyrics:
 
         # TODO: add support for multilanguage lyrics
 
-
     def format_synced_lyrics(self):
         """
         Formats synced lyrics into a list of dicts
         """
         if not self.is_synced:
-            raise ValueError("Cannot format synced lyrics if no synced lyrics exist for track.\nPlease use `format_unsynced_lyrics()`")
+            raise ValueError(
+                "Cannot format synced lyrics if no synced lyrics exist for track.\nPlease use `format_unsynced_lyrics()`"
+            )
 
         lyrics = []
 
@@ -229,7 +220,6 @@ class Lyrics:
 
         return lyrics
 
-
     def format_unsynced_lyrics(self) -> list[str]:
         """
         return unsynced lyrics.
@@ -238,7 +228,6 @@ class Lyrics:
 
         lyrics = [item["body"] for item in self.parsed_lyrics]
         return lyrics
-
 
     def __bool__(self):
         """
@@ -251,7 +240,8 @@ class Lyrics:
 # Path and parse function to get lyrics from track  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def get_lyrics_file(track_path: str|pathlib.Path) -> Lyrics:
+
+def get_lyrics_file(track_path: str | pathlib.Path) -> Lyrics:
     """
     Try to get lyrics from a relative lrc file.
 

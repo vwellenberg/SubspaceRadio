@@ -5,6 +5,7 @@ Recipes are a way to create mixes.
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+
 class HomepageRoutine(ABC):
     """
     A routine creates a row of homepage items.
@@ -21,7 +22,7 @@ class HomepageRoutine(ABC):
         self.run()
 
     @abstractmethod
-    def run(self) -> List[Any]:
+    def run(self) -> list[Any]:
         """
         Creates the homepage items and saves them to the
         homepage store if self.is_valid is true.

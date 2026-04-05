@@ -1,12 +1,12 @@
-from gettext import ngettext
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
-import pendulum
-from pydantic import Field, BaseModel
-from swingmusic.api.apischemas import TrackHashSchema
-from typing import Literal
 import locale
+from gettext import ngettext
+from typing import Literal
 
+import pendulum
+from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+
+from swingmusic.api.apischemas import TrackHashSchema
 from swingmusic.db.userdata import FavoritesTable, ScrobbleTable
 from swingmusic.lib.extras import get_extra_info
 from swingmusic.lib.recipes.recents import RecentlyPlayed
@@ -14,13 +14,14 @@ from swingmusic.models.album import Album
 from swingmusic.models.stats import StatItem
 from swingmusic.models.track import Track
 from swingmusic.plugins.lastfm import LastFmPlugin
-from swingmusic.serializers.artist import serialize_for_card
 from swingmusic.serializers.album import serialize_for_card as serialize_for_album_card
-from swingmusic.serializers.track import serialize_track, serialize_tracks
+from swingmusic.serializers.artist import serialize_for_card
+from swingmusic.serializers.track import serialize_track
 from swingmusic.settings import Defaults
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
+from swingmusic.utils.auth import get_current_userid
 from swingmusic.utils.dates import (
     get_date_range,
     get_duration_in_seconds,
@@ -37,8 +38,6 @@ from swingmusic.utils.stats import (
     get_artists_in_period,
     get_tracks_in_period,
 )
-from swingmusic.utils.auth import get_current_userid
-
 
 bp_tag = Tag(name="Logger", description="Log item plays")
 api = APIBlueprint("logger", __name__, url_prefix="/logger", abp_tags=[bp_tag])
@@ -60,7 +59,9 @@ class LogTrackBody(TrackHashSchema):
 
 
 def format_date(start: float, end: float):
-    return f"{pendulum.from_timestamp(start).format('MMM D, YYYY')} - {pendulum.from_timestamp(end).format('MMM D, YYYY')}"
+    return (
+        f"{pendulum.from_timestamp(start).format('MMM D, YYYY')} - {pendulum.from_timestamp(end).format('MMM D, YYYY')}"
+    )
 
 
 @api.post("/track/log")
@@ -106,9 +107,7 @@ def log_track(body: LogTrackBody):
     lastfm = LastFmPlugin(current_userid=get_current_userid())
 
     if (
-        lastfm.enabled
-        and track.duration > 30
-        and body.duration >= min(track.duration / 2, 240)
+        lastfm.enabled and track.duration > 30 and body.duration >= min(track.duration / 2, 240)
         # SEE: https://www.last.fm/api/scrobbling#when-is-a-scrobble-a-scrobble
     ):
         lastfm.scrobble(trackentry.tracks[0], timestamp)
@@ -122,17 +121,13 @@ class ChartItemsQuery(BaseModel):
         description="Duration to fetch data for",
     )
     limit: int = Field(10, description="Number of top tracks to return")
-    order_by: Literal["playcount", "playduration"] = Field(
-        "playduration", description="Property to order by"
-    )
+    order_by: Literal["playcount", "playduration"] = Field("playduration", description="Property to order by")
 
 
 # SECTION: STATS
 
 
-def get_help_text(
-    playcount: int, playduration: int, order_by: Literal["playcount", "playduration"]
-):
+def get_help_text(playcount: int, playduration: int, order_by: Literal["playcount", "playduration"]):
     """
     Get the help text given the playcount and playduration.
     """
@@ -157,20 +152,12 @@ def get_top_tracks(query: ChartItemsQuery):
     start_time, end_time = get_date_range(query.duration)
     previous_start_time = start_time - get_duration_in_seconds(query.duration)
 
-    current_period_tracks, current_period_scrobbles, duration = get_tracks_in_period(
-        start_time, end_time
-    )
-    previous_period_tracks, previous_period_scrobbles, _ = get_tracks_in_period(
-        previous_start_time, start_time
-    )
+    current_period_tracks, current_period_scrobbles, duration = get_tracks_in_period(start_time, end_time)
+    previous_period_tracks, previous_period_scrobbles, _ = get_tracks_in_period(previous_start_time, start_time)
     scrobble_trend = (
         "rising"
         if current_period_scrobbles > previous_period_scrobbles
-        else (
-            "falling"
-            if current_period_scrobbles < previous_period_scrobbles
-            else "stable"
-        )
+        else ("falling" if current_period_scrobbles < previous_period_scrobbles else "stable")
     )
 
     sorted_tracks = sort_tracks(current_period_tracks, query.order_by)
@@ -178,15 +165,11 @@ def get_top_tracks(query: ChartItemsQuery):
 
     response = []
     for track in top_tracks:
-        trend = calculate_track_trend(
-            track, current_period_tracks, previous_period_tracks
-        )
+        trend = calculate_track_trend(track, current_period_tracks, previous_period_tracks)
         track = {
             **serialize_track(track),
             "trend": trend,
-            "help_text": get_help_text(
-                track.playcount, track.playduration, query.order_by
-            ),
+            "help_text": get_help_text(track.playcount, track.playduration, query.order_by),
         }
 
         response.append(track)
@@ -217,18 +200,14 @@ def get_top_artists(query: ChartItemsQuery):
     previous_period_artists = get_artists_in_period(previous_start_time, start_time)
 
     new_artists = calculate_new_artists(current_period_artists, start_time)
-    scrobble_trend = calculate_scrobble_trend(
-        len(current_period_artists), len(previous_period_artists)
-    )
+    scrobble_trend = calculate_scrobble_trend(len(current_period_artists), len(previous_period_artists))
 
     sorted_artists = sort_artists(current_period_artists, query.order_by)
     top_artists = sorted_artists[: query.limit]
 
     response = []
     for artist in top_artists:
-        trend = calculate_artist_trend(
-            artist, current_period_artists, previous_period_artists
-        )
+        trend = calculate_artist_trend(artist, current_period_artists, previous_period_artists)
         db_artist = ArtistStore.get_artist_by_hash(artist["artisthash"])
 
         if db_artist is None:
@@ -237,9 +216,7 @@ def get_top_artists(query: ChartItemsQuery):
         artist = {
             **serialize_for_card(db_artist),
             "trend": trend,
-            "help_text": get_help_text(
-                artist["playcount"], artist["playduration"], query.order_by
-            ),
+            "help_text": get_help_text(artist["playcount"], artist["playduration"], query.order_by),
             "extra": {
                 "playcount": artist["playcount"],
             },
@@ -272,24 +249,18 @@ def get_top_albums(query: ChartItemsQuery):
     previous_period_albums = get_albums_in_period(previous_start_time, start_time)
 
     new_albums = calculate_new_albums(current_period_albums, previous_period_albums)
-    scrobble_trend = calculate_scrobble_trend(
-        len(current_period_albums), len(previous_period_albums)
-    )
+    scrobble_trend = calculate_scrobble_trend(len(current_period_albums), len(previous_period_albums))
 
     sorted_albums = sort_albums(current_period_albums, query.order_by)
     top_albums = sorted_albums[: query.limit]
 
     response = []
     for album in top_albums:
-        trend = calculate_album_trend(
-            album, current_period_albums, previous_period_albums
-        )
+        trend = calculate_album_trend(album, current_period_albums, previous_period_albums)
         album = {
             **serialize_for_album_card(album),
             "trend": trend,
-            "help_text": get_help_text(
-                album.playcount, album.playduration, query.order_by
-            ),
+            "help_text": get_help_text(album.playcount, album.playduration, query.order_by),
         }
         response.append(album)
 
@@ -330,9 +301,7 @@ def get_stats():
     total_tracks = StatItem(
         "trackcount",
         "in your library",
-        locale.format_string("%d", count, grouping=True)
-        + " "
-        + ngettext("track", "tracks", count),
+        locale.format_string("%d", count, grouping=True) + " " + ngettext("track", "tracks", count),
     )
 
     tracks, playcount, playduration = get_tracks_in_period(start_time, end_time)
@@ -355,11 +324,7 @@ def get_stats():
     top_track = StatItem(
         "toptrack",
         f"Top track {said_period}",
-        (
-            tracks[0].title + " - " + tracks[0].artists[0]["name"]
-            if len(tracks) > 0
-            else "—"
-        ),
+        (tracks[0].title + " - " + tracks[0].artists[0]["name"] if len(tracks) > 0 else "—"),
         (tracks[0].image if len(tracks) > 0 else None),
     )
 

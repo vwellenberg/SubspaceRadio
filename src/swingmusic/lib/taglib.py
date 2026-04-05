@@ -1,9 +1,9 @@
-import pathlib
-from dataclasses import dataclass
 import os
+import pathlib
+import re
+from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-import re
 from typing import Any
 
 import pendulum
@@ -32,7 +32,7 @@ def parse_album_art(filepath: str):
     return None
 
 
-def extract_thumb(filepath: str, webp_path: str, overwrite=False, paths:Paths=None) -> bool:
+def extract_thumb(filepath: str, webp_path: str, overwrite=False, paths: Paths = None) -> bool:
     """
     Extracts the thumbnail from an audio file.
     Returns the path to the thumbnail.
@@ -98,7 +98,7 @@ def parse_date(date_str: str) -> int | None:
     try:
         date = pendulum.parse(date_str, strict=False)
         return int(date.timestamp())
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -199,11 +199,10 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
         "track": tags.track,
         "disc": tags.disc,
         "genres": tags.genre,
-        "copyright": " ".join(other.get("copyright", [])), # INFO: Extract copyright from extra data
+        "copyright": " ".join(other.get("copyright", [])),  # INFO: Extract copyright from extra data
         "extra": {},
-        "date": date
+        "date": date,
     }
-
 
     # check the necessary tags and set them
     no_albumartist: bool = (tags.albumartist == "") or (tags.albumartist is None)
@@ -245,7 +244,6 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
             else:
                 metadata[tag] = "Unknown"
 
-
     # make values beautiful
     # INFO: If these are empty, set to "Unknown"
     to_check = ["album", "albumartists"]
@@ -269,12 +267,9 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
         except (ValueError, TypeError):
             metadata[prop] = 1
 
-
     # generate hash
     # create albumhash using og_album
-    metadata["albumhash"] = create_hash(
-        tags.album or "", metadata.get("albumartists", "")
-    )
+    metadata["albumhash"] = create_hash(tags.album or "", metadata.get("albumartists", ""))
 
     metadata["trackhash"] = create_hash(
         metadata.get("artists", ""),
@@ -282,18 +277,13 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
         metadata.get("title", ""),
     )
 
-
-
     # extract extra information not already in tags
-    extra: dict[str, Any] = {
-        k: v for k, v in tags.as_dict().items() if not k in metadata
-    }
+    extra: dict[str, Any] = {k: v for k, v in tags.as_dict().items() if k not in metadata}
 
     extra["hashinfo"] = {
         "algo": "sha1",
         "format": "[:5]+[-5:]",  # first 5 + last 5 chars
     }
-
 
     # REMOVE EMPTY VALUES
     to_pop = ["filename", "artists", "albumartist", "year"]
@@ -312,7 +302,6 @@ def get_tags(filepath: str, config: UserConfig) -> dict:
 
     for key in to_pop:
         extra.pop(key, None)
-
 
     metadata["extra"] = extra
     return metadata

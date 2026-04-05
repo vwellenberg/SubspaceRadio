@@ -1,10 +1,9 @@
-from typing import List, Optional, TypeVar
+from typing import TypeVar
 
 T = TypeVar("T")
 
-def use_bisection(
-    source: List[T], key: str, queries: List[str], limit: int = -1
-) -> List[Optional[T]]:
+
+def use_bisection(source: list[T], key: str, queries: list[str], limit: int = -1) -> list[T | None]:
     """
     Uses bisection to find a list of items in another list.
 

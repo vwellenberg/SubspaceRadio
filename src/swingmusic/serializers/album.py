@@ -1,4 +1,5 @@
 from dataclasses import asdict
+
 from swingmusic.models import Album
 
 
@@ -8,7 +9,7 @@ def album_serializer(album: Album, to_remove: set[str]) -> dict:
     except TypeError:
         return {}
 
-    to_remove.update(key for key in album_dict.keys() if key.startswith("is_"))
+    to_remove.update(key for key in album_dict if key.startswith("is_"))
     for key in to_remove:
         album_dict.pop(key, None)
 

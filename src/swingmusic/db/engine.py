@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import sessionmaker
 
@@ -16,6 +17,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.execute("PRAGMA mmap_size=0")
     cursor.close()
 
+
 class classproperty(property):
     """
     A class property decorator.
@@ -24,7 +26,6 @@ class classproperty(property):
     def __get__(self, owner_self, owner_cls):
         if self.fget:
             return self.fget(owner_cls)
-
 
 
 class DbEngine:

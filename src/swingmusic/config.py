@@ -1,7 +1,8 @@
 import json
+from dataclasses import InitVar, asdict, dataclass, field
 from pathlib import Path
 from typing import Any
-from dataclasses import dataclass, asdict, field, InitVar
+
 from swingmusic.data import ARTIST_SPLIT_IGNORE_LIST
 from swingmusic.settings import Paths, Singleton
 
@@ -60,9 +61,7 @@ class UserConfig(metaclass=Singleton):
     artistSeparators: set[str] = field(default_factory=lambda: {";", "/"})
     artistSplitIgnoreList: set[str] = field(
         # TODO: in the future, maybe setup a server where users can contribute to the global ignore list?
-        default_factory=lambda: load_default_artist_ignore_list().union(
-            load_user_artist_ignore_list()
-        )
+        default_factory=lambda: load_default_artist_ignore_list().union(load_user_artist_ignore_list())
     )
     genreSeparators: set[str] = field(default_factory=lambda: {"/", ";", "&"})
 

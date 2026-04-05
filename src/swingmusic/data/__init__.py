@@ -42,7 +42,6 @@ ARTIST_SPLIT_IGNORE_LIST = {
     "Hall & Oates",
     "Tom Petty & The Heartbreakers",
     "Sly & the Family Stone",
-    "Booker T. & the M.G.'s",
     "KC & the Sunshine Band",
     "Huey Lewis & the News",
     "Joan Jett & the Blackhearts",
@@ -63,7 +62,6 @@ ARTIST_SPLIT_IGNORE_LIST = {
     "Ashford & Simpson",
     "Sam & Dave",
     "Ike & Tina Turner",
-    "Sonny & Cher",
     "Captain & Tennille",
     "Hootie & the Blowfish",
     "Diana Ross & the Supremes",
@@ -77,5 +75,5 @@ ARTIST_SPLIT_IGNORE_LIST = {
     "Aly & AJ",
     "Maddie & Tae",
     "Nico & Vinz",
-    "Yusuf / Cat Stevens"
+    "Yusuf / Cat Stevens",
 }

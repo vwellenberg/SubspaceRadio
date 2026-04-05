@@ -1,5 +1,5 @@
-import hmac
 import hashlib
+import hmac
 
 from flask_jwt_extended import current_user
 
@@ -15,9 +15,7 @@ def hash_password(password: str) -> str:
 
     :return: The hashed password.
     """
-    return hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), UserConfig().serverId.encode("utf-8"), 100000
-    ).hex()
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), UserConfig().serverId.encode("utf-8"), 100000).hex()
 
 
 def check_password(password: str, hashed: str) -> bool:

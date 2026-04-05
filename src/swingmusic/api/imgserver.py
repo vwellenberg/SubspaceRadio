@@ -1,19 +1,16 @@
-from fileinput import filename
 from pathlib import Path
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
-from pydantic import BaseModel, Field
+
 from flask import send_from_directory
+from flask_openapi3 import APIBlueprint, Tag
+from PIL import Image
+from pydantic import BaseModel, Field
 
 from swingmusic.settings import Defaults, Paths
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.threading import background
-from PIL import Image
 
-bp_tag = Tag(
-    name="Images", description="Image filenames are constructured as '{itemhash}.webp'"
-)
+bp_tag = Tag(name="Images", description="Image filenames are constructured as '{itemhash}.webp'")
 api = APIBlueprint("imgserver", __name__, url_prefix="/img", abp_tags=[bp_tag])
 
 
@@ -98,9 +95,7 @@ def send_fallback_img(filename: str = "default.webp"):
     return send_from_directory(folder, filename)
 
 
-def send_file_or_fallback(
-    folder: str, filename: str, fallback: str = "default.webp", pathhash: str = ""
-):
+def send_file_or_fallback(folder: str, filename: str, fallback: str = "default.webp", pathhash: str = ""):
     """
     Returns the file from the folder or the fallback image.
     """
@@ -116,9 +111,7 @@ def send_file_or_fallback(
             return send_from_directory(cache_path.parent, cache_path.name)
 
         # INFO: Find the thumbnail
-        parent, file, albumhash = find_thumbnail(
-            filename.replace(".webp", ""), pathhash
-        )
+        parent, file, albumhash = find_thumbnail(filename.replace(".webp", ""), pathhash)
 
         # INFO: Cache  and send the thumbnail
         if file is not None and parent is not None:

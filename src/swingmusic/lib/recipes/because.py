@@ -1,4 +1,3 @@
-from pprint import pprint
 from swingmusic.db.userdata import UserTable
 from swingmusic.lib.recipes import HomepageRoutine
 from swingmusic.lib.recipes.artistmixes import ArtistMixes
@@ -18,23 +17,17 @@ class BecauseYouListened(HomepageRoutine):
         users = UserTable.get_all()
 
         for user in users:
-            entry: dict[str, Mix] = HomepageStore.entries.get(
-                ArtistMixes.store_key
-            ).items.get(user.id)  # type: ignore
+            entry: dict[str, Mix] = HomepageStore.entries.get(ArtistMixes.store_key).items.get(user.id)  # type: ignore
 
             if not entry:
                 continue
 
-            because_you_listened_to_artist, artists_you_might_like = (
-                MixesPlugin().get_because_items(list(entry.values()))
+            because_you_listened_to_artist, artists_you_might_like = MixesPlugin().get_because_items(
+                list(entry.values())
             )
 
             if not because_you_listened_to_artist or not artists_you_might_like:
                 continue
 
-            HomepageStore.entries[self.store_keys[0]].items[
-                user.id
-            ] = because_you_listened_to_artist
-            HomepageStore.entries[self.store_keys[1]].items[
-                user.id
-            ] = artists_you_might_like
+            HomepageStore.entries[self.store_keys[0]].items[user.id] = because_you_listened_to_artist
+            HomepageStore.entries[self.store_keys[1]].items[user.id] = artists_you_might_like

@@ -18,7 +18,7 @@ def get_leading_silence_end(filepath: pathlib.Path):
     try:
         audio = AudioSegment.from_file(filepath, format=format)
         silence = detect_leading_silence(audio, silence_threshold=-40.0, chunk_size=10)
-    except Exception as e:
+    except Exception:
         return 0
 
     return silence if silence > 1000 else 0
@@ -33,7 +33,7 @@ def get_trailing_silence_start(filepath: str):
     try:
         audio = AudioSegment.from_file(filepath, format=format)
         duration = len(audio)
-    except Exception as e:
+    except Exception:
         return None
 
     audio = audio[-30000:] if len(audio) > 30000 else audio
@@ -58,21 +58,16 @@ def get_silence_paddings(ending_file: str, starting_file: str):
     starting_file = pathlib.Path(starting_file)
     ending_file = pathlib.Path(ending_file)
 
-
     silence = {"starting_file": 0, "ending_file": 0}
     ending_thread = None
     starting_thread = None
 
     if ending_file.exists():
-        ending_thread = ProcessWithReturnValue(
-            target=get_trailing_silence_start, args=(ending_file,)
-        )
+        ending_thread = ProcessWithReturnValue(target=get_trailing_silence_start, args=(ending_file,))
         ending_thread.start()
 
     if os.path.exists(starting_file):
-        starting_thread = ProcessWithReturnValue(
-            target=get_leading_silence_end, args=(starting_file,)
-        )
+        starting_thread = ProcessWithReturnValue(target=get_leading_silence_end, args=(starting_file,))
         starting_thread.start()
 
     if ending_thread:

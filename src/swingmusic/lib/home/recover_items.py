@@ -66,16 +66,10 @@ def recover_items(items: list[dict]):
             }
         elif item["type"] == "playlist":
             if item.get("is_custom"):
-                playlist, _ = next(
-                    i["handler"]()
-                    for i in custom_playlists
-                    if i["name"] == item["hash"]
-                )
+                playlist, _ = next(i["handler"]() for i in custom_playlists if i["name"] == item["hash"])
                 playlist.images = [i["image"] for i in playlist.images]
 
-                playlist = serialize_playlist(
-                    playlist, to_remove={"settings", "duration"}
-                )
+                playlist = serialize_playlist(playlist, to_remove={"settings", "duration"})
                 recovered_item = {
                     "type": "playlist",
                     "item": playlist,

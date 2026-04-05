@@ -1,7 +1,7 @@
 import pathlib
+from concurrent.futures import ThreadPoolExecutor
 
 from sortedcontainers import SortedSet
-from concurrent.futures import ThreadPoolExecutor
 
 from swingmusic.db.libdata import TrackTable
 from swingmusic.store.tracks import TrackStore
@@ -23,7 +23,6 @@ class FolderStore:
     The map above is a dictionary that maps the folder path to the track hash, which can be used to fetch the track from the track store (a dict of track hashes to track objects).
     """
 
-
     @classmethod
     def load_filepaths(cls):
         """
@@ -37,7 +36,6 @@ class FolderStore:
         for track in tracks:
             cls.filepaths.add(track.filepath)
             cls.map[track.filepath] = track.trackhash
-
 
     @classmethod
     def get_tracks_by_filepaths(cls, filepaths: list[str]):
@@ -58,7 +56,6 @@ class FolderStore:
                     if track.filepath == filepath:
                         yield track
 
-
     @classmethod
     def count_tracks_containing_paths(cls, paths: list[str]):
         """
@@ -70,9 +67,7 @@ class FolderStore:
 
         with ThreadPoolExecutor() as executor:
             res = executor.map(count_filepaths_in_dir, ((path, FolderStore.filepaths) for path in paths))
-            results = [
-                {"path": path, "trackcount": count} for path, count in zip(paths, res)
-            ]
+            results = [{"path": path, "trackcount": count} for path, count in zip(paths, res, strict=False)]
 
         return results
 

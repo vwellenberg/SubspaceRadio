@@ -1,8 +1,6 @@
 import json
-import os
 import time
 from pathlib import Path
-from typing import List, Optional
 
 import requests
 from unidecode import unidecode
@@ -26,7 +24,7 @@ class LRCProvider:
             }
         )
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[str]:
+    def get_lrc_by_id(self, track_id: str) -> str | None:
         """
         Returns the synced lyrics of the song in lrc.
 
@@ -35,7 +33,7 @@ class LRCProvider:
         """
         raise NotImplementedError
 
-    def get_lrc(self, search_term: str) -> Optional[str]:
+    def get_lrc(self, search_term: str) -> str | None:
         """
         Returns the synced lyrics of the song in lrc.
         """
@@ -59,7 +57,7 @@ class LyricsProvider(LRCProvider):
             }
         )
 
-    def _get(self, action: str, query: List[tuple]):
+    def _get(self, action: str, query: list[tuple]):
         if action != "token.get" and self.token is None:
             self._get_token()
 
@@ -77,7 +75,7 @@ class LyricsProvider(LRCProvider):
 
         try:
             response = self.session.get(url, params=query, timeout=10)
-        except:
+        except Exception:
             return None
 
         if response is not None and response.ok:
@@ -125,10 +123,8 @@ class LyricsProvider(LRCProvider):
         with token_path.open("w", encoding="utf-8") as token_file:
             json.dump(token_data, token_file)
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[str]:
-        res = self._get(
-            "track.subtitle.get", [("track_id", track_id), ("subtitle_format", "lrc")]
-        )
+    def get_lrc_by_id(self, track_id: str) -> str | None:
+        res = self._get("track.subtitle.get", [("track_id", track_id), ("subtitle_format", "lrc")])
 
         try:
             res = res.json()
@@ -211,9 +207,7 @@ class Lyrics(Plugin):
     def download_lyrics(self, trackid: str, path: str):
         lrc = self.provider.get_lrc_by_id(trackid)
 
-        if lrc is None:
-            return None
-        elif len(lrc.replace("\n", "").strip()) < 1: #check if empty
+        if lrc is None or len(lrc.replace("\n", "").strip()) < 1:
             return None
 
         path = Path(path).with_suffix(".lrc")

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Any
 
 from swingmusic.lib.home.recover_items import recover_items
@@ -20,6 +20,7 @@ class HomepageEntry(ABC):
         self.title = title
         self.description = description
 
+    @abstractmethod
     def get_items(self, userid: int, limit: int | None = None):
         """
         Return usable items for the homepage.

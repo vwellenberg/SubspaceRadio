@@ -27,4 +27,3 @@ def plugin_method(func):
             return
 
     return wrapper
-

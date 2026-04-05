@@ -84,7 +84,7 @@ class HomepageStore:
 
         homedata = [
             {entry: cls.entries[entry].get_items(get_current_userid(), limit)}
-            for entry in cls.entries.keys()
+            for entry in cls.entries
             if len(cls.entries[entry].items)
         ]
 

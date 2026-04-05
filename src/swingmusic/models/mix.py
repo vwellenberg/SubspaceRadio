@@ -3,7 +3,6 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from swingmusic.db.utils import row_to_dict
-from swingmusic.lib.playlistlib import get_first_4_images
 from swingmusic.serializers.track import serialize_tracks
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.dates import seconds_to_time_string, timestamp_to_time_passed

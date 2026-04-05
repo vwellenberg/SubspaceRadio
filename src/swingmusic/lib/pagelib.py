@@ -1,5 +1,6 @@
 import json
 from typing import Any
+
 from swingmusic.serializers.album import serialize_for_card
 from swingmusic.serializers.artist import serialize_for_card as serialize_artist
 from swingmusic.store.albums import AlbumStore
@@ -35,11 +36,7 @@ def validate_page_items(items: list[dict[str, str]], existing: list[dict[str, st
 
 
 def remove_page_items(existing: list[dict[str, str]], item: dict[str, str]):
-    return [
-        i
-        for i in existing
-        if create_hash(json.dumps(i)) != create_hash(json.dumps(item))
-    ]
+    return [i for i in existing if create_hash(json.dumps(i)) != create_hash(json.dumps(item))]
 
 
 def recover_page_items(items: list[dict[str, str]], for_homepage: bool = False):

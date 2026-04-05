@@ -1,10 +1,9 @@
-from swingmusic.db.userdata import LibDataTable, FavoritesTable, ScrobbleTable
+from typing import Any
+
+from swingmusic.db.userdata import FavoritesTable, LibDataTable, ScrobbleTable
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
-
-
-from typing import Any
 
 
 def map_scrobble_data():
@@ -33,22 +32,16 @@ def map_scrobble_data():
         if track is None:
             continue
 
-        track.increment_playcount(
-            data["playduration"], data["lastplayed"], data["playcount"]
-        )
+        track.increment_playcount(data["playduration"], data["lastplayed"], data["playcount"])
 
         album = AlbumStore.albummap.get(track.tracks[0].albumhash)
         if album:
-            album.increment_playcount(
-                data["playduration"], data["lastplayed"], data["playcount"]
-            )
+            album.increment_playcount(data["playduration"], data["lastplayed"], data["playcount"])
 
         for artisthash in track.tracks[0].artisthashes:
             artist = ArtistStore.artistmap.get(artisthash)
             if artist:
-                artist.increment_playcount(
-                    data["playduration"], data["lastplayed"], data["playcount"]
-                )
+                artist.increment_playcount(data["playduration"], data["lastplayed"], data["playcount"])
 
 
 def map_favorites():

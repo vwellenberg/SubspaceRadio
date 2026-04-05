@@ -1,14 +1,13 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from datetime import datetime
+
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
-from datetime import datetime
 from swingmusic.api.apischemas import GenericLimitSchema
-from swingmusic.store.albums import AlbumStore
-from swingmusic.store.artists import ArtistStore
-
 from swingmusic.serializers.album import serialize_for_card as serialize_album
 from swingmusic.serializers.artist import serialize_for_card as serialize_artist
+from swingmusic.store.albums import AlbumStore
+from swingmusic.store.artists import ArtistStore
 from swingmusic.utils import format_number
 from swingmusic.utils.dates import (
     create_new_date,
@@ -116,27 +115,19 @@ def get_all_items(path: GetAllItemsPath, query: GetAllItemsQuery):
             item_dict["help_text"] = timeago
 
         if sort_is_count:
-            item_dict["help_text"] = (
-                f"{format_number(item.trackcount)} track{'' if item.trackcount == 1 else 's'}"
-            )
+            item_dict["help_text"] = f"{format_number(item.trackcount)} track{'' if item.trackcount == 1 else 's'}"
 
         if sort_is_duration:
             item_dict["help_text"] = seconds_to_time_string(item.duration)
 
         if sort_is_artist_trackcount:
-            item_dict["help_text"] = (
-                f"{format_number(item.trackcount)} track{'' if item.trackcount == 1 else 's'}"
-            )
+            item_dict["help_text"] = f"{format_number(item.trackcount)} track{'' if item.trackcount == 1 else 's'}"
 
         if sort_is_artist_albumcount:
-            item_dict["help_text"] = (
-                f"{format_number(item.albumcount)} album{'' if item.albumcount == 1 else 's'}"
-            )
+            item_dict["help_text"] = f"{format_number(item.albumcount)} album{'' if item.albumcount == 1 else 's'}"
 
         if sort_is_playcount:
-            item_dict["help_text"] = (
-                f"{format_number(item.playcount)} play{'' if item.playcount == 1 else 's'}"
-            )
+            item_dict["help_text"] = f"{format_number(item.playcount)} play{'' if item.playcount == 1 else 's'}"
 
         if sort_is_lastplayed:
             if item.playduration == 0:

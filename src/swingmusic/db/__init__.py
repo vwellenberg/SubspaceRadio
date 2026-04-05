@@ -6,8 +6,8 @@ from sqlalchemy import (
     insert,
     select,
 )
-
 from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass
+
 from swingmusic.db.engine import DbEngine
 
 

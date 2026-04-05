@@ -3,7 +3,7 @@ from dataclasses import asdict
 from swingmusic.models.track import Track
 
 
-def serialize_track(track: Track, to_remove:set=set(), remove_disc:bool=True) -> dict:
+def serialize_track(track: Track, to_remove: set | None = None, remove_disc: bool = True) -> dict:
     """
     Convert `Track` to dict
 
@@ -11,8 +11,10 @@ def serialize_track(track: Track, to_remove:set=set(), remove_disc:bool=True) ->
     :params to_remove: custom tags which should also be removed from Track.
     :params remove_disc:
     """
+    if to_remove is None:
+        to_remove = set()
     album_dict = asdict(track)
-    album_keys =  ( key for key in album_dict.keys() if key.startswith(("is_", "_")) )
+    album_keys = (key for key in album_dict if key.startswith(("is_", "_")))
     # add all keys from album_dict starting with "is_" or "_"
 
     props = {
@@ -40,7 +42,6 @@ def serialize_track(track: Track, to_remove:set=set(), remove_disc:bool=True) ->
         props.add("disc")
         props.add("track")
 
-
     for key in props:
         album_dict.pop(key, None)
 
@@ -55,10 +56,12 @@ def serialize_track(track: Track, to_remove:set=set(), remove_disc:bool=True) ->
     return album_dict
 
 
-def serialize_tracks(tracks: list[Track], _remove: set = set(), remove_disc=True) -> list[dict]:
+def serialize_tracks(tracks: list[Track], _remove: set | None = None, remove_disc=True) -> list[dict]:
     """
     wrapper for iterable type with Tracks.
     convert Tracks to dict and return as list[dict]
     """
 
+    if _remove is None:
+        _remove = set()
     return [serialize_track(t, _remove, remove_disc) for t in tracks]

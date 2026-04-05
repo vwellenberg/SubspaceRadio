@@ -4,8 +4,7 @@ Contains all the collection routes.
 
 from typing import Any
 
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
 from swingmusic.db.userdata import CollectionTable
@@ -13,9 +12,7 @@ from swingmusic.lib.pagelib import recover_page_items, remove_page_items, valida
 from swingmusic.utils.auth import get_current_userid
 
 bp_tag = Tag(name="Collections", description="Collections")
-api = APIBlueprint(
-    "collections", __name__, url_prefix="/collections", abp_tags=[bp_tag]
-)
+api = APIBlueprint("collections", __name__, url_prefix="/collections", abp_tags=[bp_tag])
 
 
 class CreateCollectionBody(BaseModel):
@@ -102,15 +99,11 @@ class RemoveCollectionItemBody(BaseModel):
 
 
 class RemoveCollectionItemPath(BaseModel):
-    collection_id: int = Field(
-        description="The ID of the collection to remove items from"
-    )
+    collection_id: int = Field(description="The ID of the collection to remove items from")
 
 
 @api.delete("/<int:collection_id>/items")
-def remove_collection_item(
-    path: RemoveCollectionItemPath, body: RemoveCollectionItemBody
-):
+def remove_collection_item(path: RemoveCollectionItemPath, body: RemoveCollectionItemBody):
     """
     Remove an item from a collection.
     """
@@ -149,9 +142,7 @@ def get_collection(path: GetCollectionBody):
 
 class UpdateCollectionBody(BaseModel):
     name: str = Field(description="The name of the collection")
-    description: str = Field(
-        description="The description of the collection", default=""
-    )
+    description: str = Field(description="The description of the collection", default="")
 
 
 @api.put("/<int:collection_id>")

@@ -1,10 +1,10 @@
-import random
-from typing import Iterable
+from collections.abc import Iterable
+
 from swingmusic.lib.tagger import create_albums
 from swingmusic.models import Album, Track
 from swingmusic.store.artists import ArtistStore
-from swingmusic.utils.auth import get_current_userid
 from swingmusic.store.tracks import TrackStore
+from swingmusic.utils.auth import get_current_userid
 
 ALBUM_LOAD_KEY = ""
 
@@ -54,9 +54,7 @@ class AlbumStore:
 
     @classmethod
     def index_new_album(cls, album: Album, trackhashes: set[str]):
-        cls.albummap[album.albumhash] = AlbumMapEntry(
-            album=album, trackhashes=trackhashes
-        )
+        cls.albummap[album.albumhash] = AlbumMapEntry(album=album, trackhashes=trackhashes)
 
     @classmethod
     def get_flat_list(cls):
@@ -64,7 +62,6 @@ class AlbumStore:
         Returns a flat list of all albums.
         """
         return [a.album for a in cls.albummap.values()]
-
 
     @classmethod
     def get_album_by_hash(cls, albumhash: str) -> Album | None:

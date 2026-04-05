@@ -1,5 +1,5 @@
-from dataclasses import asdict, field, dataclass
 import json
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass(slots=True)

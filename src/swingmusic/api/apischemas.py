@@ -26,6 +26,7 @@ class ArtistHashSchema(BaseModel):
     """
     Extending this class will give you a model with the `artisthash` field
     """
+
     artisthash: str = Field(
         description="The artist hash",
         json_schema_extra={

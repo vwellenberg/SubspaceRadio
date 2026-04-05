@@ -1,14 +1,14 @@
+import mimetypes
 import socket
+
+import setproctitle
+
 from swingmusic import app_builder
 from swingmusic.crons import start_cron_jobs
 from swingmusic.plugins.register import register_plugins
 from swingmusic.setup import load_into_mem, run_setup
 from swingmusic.start_info_logger import log_startup_info
 from swingmusic.utils.threading import background
-
-import setproctitle
-
-import mimetypes
 
 
 def config_mimetypes():
@@ -43,7 +43,7 @@ class PortManager:
             http_server.bind((self.host, port))
             http_server.close()
             return True
-        except socket.error as e:
+        except OSError as e:
             if e.errno == 48:
                 return False
             else:

@@ -1,7 +1,6 @@
-import schedule
-
-
 from abc import ABC, abstractmethod
+
+import schedule
 
 
 class CronJob(ABC):

@@ -1,5 +1,6 @@
-from swingmusic.db.userdata import PluginTable
 from sqlalchemy.exc import IntegrityError
+
+from swingmusic.db.userdata import PluginTable
 
 
 def register_plugins():

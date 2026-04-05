@@ -12,7 +12,7 @@ def has_connection(host="google.it", port=80, timeout=3):
         Socket.setdefaulttimeout(timeout)
         Socket.socket(Socket.AF_INET, Socket.SOCK_STREAM).connect((host, port))
         return True
-    except Socket.error as ex:
+    except OSError:
         return False
 
 

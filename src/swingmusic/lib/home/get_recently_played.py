@@ -3,9 +3,7 @@ from swingmusic.lib.home.create_items import create_items
 from swingmusic.models.logger import TrackLog
 
 
-def get_recently_played(
-    limit: int, userid: int | None = None, _entries: list[TrackLog] = []
-):
+def get_recently_played(limit: int, userid: int | None = None, _entries: list[TrackLog] = []):
     """
     Get the recently played items for the homepage.
 
@@ -31,9 +29,7 @@ def get_recently_played(
         current_index += BATCH_SIZE
 
         if len(items) < limit:
-            entries = ScrobbleTable.get_all(
-                start=current_index + 1, limit=BATCH_SIZE, userid=userid
-            )
+            entries = ScrobbleTable.get_all(start=current_index + 1, limit=BATCH_SIZE, userid=userid)
             if not entries:
                 break
 

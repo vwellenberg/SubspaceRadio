@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 FILES = ["flac", "mp3", "wav", "m4a", "ogg", "wma", "opus", "alac", "aiff"]
 SUPPORTED_FILES = tuple(f".{file}" for file in FILES)
 
@@ -46,9 +45,7 @@ def run_fast_scandir(path: str, full=False) -> tuple[list[str], list[str]]:
 
     path: Path = Path(path).resolve()
 
-    if any(
-        path.as_posix().endswith(ignore_path) for ignore_path in IGNORE_PATH_ENDSWITH
-    ):
+    if any(path.as_posix().endswith(ignore_path) for ignore_path in IGNORE_PATH_ENDSWITH):
         return [], []
 
     if any(ignore_path in path.as_posix() for ignore_path in IGNORE_PATH_CONTAINS):

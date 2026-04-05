@@ -16,11 +16,8 @@ def get_all_migrations(module: ModuleType) -> list[Migration]:
     """
     Extracts all migration classes from a module.
     """
-    predicate = (
-        lambda obj: inspect.isclass(obj)
-        and issubclass(obj, Migration)
-        and obj.enabled
-        and obj.__module__ == module.__name__
+    predicate = lambda obj: (
+        inspect.isclass(obj) and issubclass(obj, Migration) and obj.enabled and obj.__module__ == module.__name__
     )
 
     # INFO: I couldn't find how to sort the classes in order of appearance
@@ -42,14 +39,12 @@ def apply_migrations():
     migrations = [get_all_migrations(m) for m in modules]
 
     # index = MigrationManager.get_index()
-    index = MigrationTable.get_version()
+    MigrationTable.get_version()
     all_migrations = [migration for sublist in migrations for migration in sublist]
-
-    to_apply: list[Migration] = []
 
     # if index is from old release,
     # get migrations from the "migrations" list
-    
+
     # if index < 3:
     #     _migrations = migrations[index:]
     #     to_apply = [migration for sublist in _migrations for migration in sublist]

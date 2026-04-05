@@ -1,7 +1,9 @@
 from typing import Any
 
 from swingmusic.config import UserConfig
-from swingmusic.models import Album as AlbumModel, Artist as ArtistModel, Track as TrackModel
+from swingmusic.models import Album as AlbumModel
+from swingmusic.models import Artist as ArtistModel
+from swingmusic.models import Track as TrackModel
 from swingmusic.models.favorite import Favorite
 from swingmusic.models.lastfm import SimilarArtist
 from swingmusic.models.logger import TrackLog

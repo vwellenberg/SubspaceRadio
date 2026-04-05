@@ -1,17 +1,14 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import Field
+
 from swingmusic.api.apischemas import TrackHashSchema
 from swingmusic.lib.lyrics import Lyrics as Lyrics_class
-
 from swingmusic.plugins.lyrics import Lyrics
 from swingmusic.settings import Defaults
 from swingmusic.utils.hashing import create_hash
 
 bp_tag = Tag(name="Lyrics Plugin", description="Musixmatch lyrics plugin")
-api = APIBlueprint(
-    "lyricsplugin", __name__, url_prefix="/plugins/lyrics", abp_tags=[bp_tag]
-)
+api = APIBlueprint("lyricsplugin", __name__, url_prefix="/plugins/lyrics", abp_tags=[bp_tag])
 
 
 class LyricsSearchBody(TrackHashSchema):

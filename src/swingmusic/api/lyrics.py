@@ -1,14 +1,13 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import Field
 
-from swingmusic.store.tracks import TrackStore
 from swingmusic.api.apischemas import TrackHashSchema
 from swingmusic.lib.lyrics import (
     get_lyrics_file,
     get_lyrics_from_duplicates,
     get_lyrics_from_tags,
 )
+from swingmusic.store.tracks import TrackStore
 
 bp_tag = Tag(name="Lyrics", description="Get lyrics")
 api = APIBlueprint("lyrics", __name__, url_prefix="/lyrics", abp_tags=[bp_tag])
@@ -33,7 +32,7 @@ def send_lyrics(body: SendLyricsBody):
 
     # get copyright first
     copyright = ""
-    if entry:=TrackStore.trackhashmap.get(trackhash, None):
+    if entry := TrackStore.trackhashmap.get(trackhash, None):
         for track in entry.tracks:
             copyright = track.copyright
 
@@ -43,11 +42,10 @@ def send_lyrics(body: SendLyricsBody):
     lyrics = get_lyrics_file(filepath)
 
     if not lyrics:
-        lyrics = get_lyrics_from_tags(trackhash) # type: ignore
+        lyrics = get_lyrics_from_tags(trackhash)  # type: ignore
 
     if not lyrics:
         lyrics = get_lyrics_from_duplicates(filepath, trackhash)
-
 
     # check lyrics plugins
 
@@ -73,5 +71,3 @@ def check_lyrics(body: SendLyricsBody):
         return {"exists": False}
     else:
         return {"exists": True}, 200
-
-

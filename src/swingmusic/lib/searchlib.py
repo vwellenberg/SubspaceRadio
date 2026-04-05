@@ -2,11 +2,10 @@
 This library contains all the functions related to the search functionality.
 """
 
-from rapidfuzz import process, utils, fuzz
+from rapidfuzz import fuzz, process, utils
 from unidecode import unidecode
 
 from swingmusic import models
-
 from swingmusic.models.album import Album
 from swingmusic.models.artist import Artist
 from swingmusic.models.playlist import Playlist
@@ -15,11 +14,9 @@ from swingmusic.serializers.album import serialize_for_card as serialize_album
 from swingmusic.serializers.album import serialize_for_card_many as serialize_albums
 from swingmusic.serializers.artist import serialize_for_card, serialize_for_cards
 from swingmusic.serializers.track import serialize_track, serialize_tracks
-
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
-
 from swingmusic.utils.remove_duplicates import remove_duplicates
 
 # ratio = fuzz.ratio
@@ -306,9 +303,7 @@ class TopResults:
             top_result["type"] = "album"
 
         if isinstance(top_result, Artist):
-            top_result = serialize_for_card(
-                top_result, include={"albumcount", "trackcount"}
-            )
+            top_result = serialize_for_card(top_result, include={"albumcount", "trackcount"})
             top_result["type"] = "artist"
 
         return {

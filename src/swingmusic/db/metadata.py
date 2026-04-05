@@ -1,9 +1,7 @@
-from swingmusic.db import Base
-
-
 from sqlalchemy import Integer, insert, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 
+from swingmusic.db import Base
 from swingmusic.db.engine import DbEngine
 
 
@@ -16,9 +14,7 @@ class MigrationTable(Base):
     @classmethod
     def set_version(cls, version: int):
         with DbEngine.manager(commit=True) as conn:
-            result = conn.execute(
-                update(cls).where(cls.id == 1).values(version=version)
-            )
+            result = conn.execute(update(cls).where(cls.id == 1).values(version=version))
 
             if result.rowcount == 0:
                 conn.execute(insert(cls).values(id=1, version=version))

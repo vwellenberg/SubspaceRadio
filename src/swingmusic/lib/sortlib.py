@@ -1,6 +1,7 @@
-from itertools import groupby
 import os
-from typing import Callable
+from collections.abc import Callable
+from itertools import groupby
+
 from swingmusic.lib.albumslib import sort_by_track_no
 from swingmusic.models.folder import Folder
 from swingmusic.models.track import Track
@@ -33,9 +34,7 @@ def sort_tracks(tracks: list[Track], key: str, reverse: bool = False):
 
     return sorted(
         tracks,
-        key=lambda track: sortfunc(track).casefold()
-        if isinstance(sortfunc(track), str)
-        else sortfunc(track),
+        key=lambda track: sortfunc(track).casefold() if isinstance(sortfunc(track), str) else sortfunc(track),
         reverse=reverse,
     )
 

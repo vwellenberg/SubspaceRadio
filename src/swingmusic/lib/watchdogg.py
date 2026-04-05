@@ -2,14 +2,13 @@
 This library contains the classes and functions related to the watchdog file watcher.
 """
 
-import json
 import os
 import sqlite3
 import time
 
 from watchdog.events import PatternMatchingEventHandler
-from watchdog.observers.api import BaseObserverSubclassCallable
 from watchdog.observers import Observer
+from watchdog.observers.api import BaseObserverSubclassCallable
 
 from swingmusic import settings
 from swingmusic.config import UserConfig
@@ -48,23 +47,17 @@ class Watcher:
                 dirs = UserConfig().rootDirs
                 dirs = [rf"{d}" for d in dirs]
 
-                dir_map = [
-                    {"original": d, "realpath": os.path.realpath(d)} for d in dirs
-                ]
+                dir_map = [{"original": d, "realpath": os.path.realpath(d)} for d in dirs]
                 break
             except sqlite3.OperationalError:
                 trials += 1
                 time.sleep(1)
         else:
-            log.error(
-                "WatchDogError: Failed to start Watchdog. Waiting for database timed out!"
-            )
+            log.error("WatchDogError: Failed to start Watchdog. Waiting for database timed out!")
             return
 
         if len(dirs) == 0:
-            log.warning(
-                "WatchDogInfo: No root directories configured. Watchdog not started."
-            )
+            log.warning("WatchDogInfo: No root directories configured. Watchdog not started.")
             return
 
         dir_map = [d for d in dir_map if d["realpath"] != d["original"]]
@@ -84,18 +77,14 @@ class Watcher:
                 log.error("WatchdogError: Directory not found: %s", _dir)
 
         for _dir in dirs:
-            self.observer.schedule(
-                event_handler, os.path.realpath(_dir), recursive=True
-            )
+            self.observer.schedule(event_handler, os.path.realpath(_dir), recursive=True)
             self.observers.append(self.observer)
 
         try:
             self.observer.start()
             log.info("Started watchdog")
         except (FileNotFoundError, PermissionError):
-            log.error(
-                "WatchdogError: Failed to start watchdog,  root directories could not be resolved."
-            )
+            log.error("WatchdogError: Failed to start watchdog,  root directories could not be resolved.")
             return
         except OSError as e:
             log.error("Failed to start watchdog. %s", e)
@@ -141,9 +130,7 @@ def handle_color(albumhash: str):
         return
 
     if entry is None:
-        LibDataTable.insert_one(
-            {"itemhash": albumhash, "color": colors[0], "itemtype": "album"}
-        )
+        LibDataTable.insert_one({"itemhash": albumhash, "color": colors[0], "itemtype": "album"})
     else:
         LibDataTable.update_one(albumhash, {"color": colors[0]})
 
@@ -315,17 +302,13 @@ class Handler(PatternMatchingEventHandler):
                 self.files_to_process.remove(event.src_path)
             else:
                 # File is still being modified or has been deleted
-                log.info(
-                    f"File {event.src_path} is still being modified. Skipping processing for now."
-                )
+                log.info(f"File {event.src_path} is still being modified. Skipping processing for now.")
         except FileNotFoundError:
             # file was closed and deleted.
             log.info(f"File {event.src_path} was closed and deleted before processing.")
         except ValueError:
             # file was already removed from the list by another event handler.
-            log.info(
-                f"File {event.src_path} was already removed from the processing list."
-            )
+            log.info(f"File {event.src_path} was already removed from the processing list.")
 
     def on_modified(self, event):
         # this event handler is triggered twice on windows

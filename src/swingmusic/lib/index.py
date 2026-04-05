@@ -1,6 +1,7 @@
 import gc
 import logging
 from time import time
+
 from swingmusic.lib.mapstuff import (
     map_album_colors,
     map_artist_colors,
@@ -17,6 +18,7 @@ from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.threading import background
 
 log = logging.getLogger(__name__)
+
 
 @background
 def index_everything():

@@ -1,4 +1,5 @@
 from gettext import ngettext
+
 import pendulum
 
 from swingmusic.crons.cron import CronJob
@@ -28,10 +29,7 @@ class TopArtists(CronJob, HomepageRoutine):
             now = pendulum.now()
             middle_day = now.days_in_month // 2
 
-            return (
-                now.day in range(middle_day, middle_day + 2)
-                or now.day > now.days_in_month - 2
-            )
+            return now.day in range(middle_day, middle_day + 2) or now.day > now.days_in_month - 2
         if self.duration == "week":
             return pendulum.now().isoweekday() in (5, 6, 7)
 
@@ -53,25 +51,19 @@ class TopArtists(CronJob, HomepageRoutine):
 
         for userid in self.userids:
             date_range = get_date_range(self.duration)
-            artists = get_artists_in_period(date_range[0], date_range[1], userid)[
-                : self.ITEM_LIMIT
-            ]
+            artists = get_artists_in_period(date_range[0], date_range[1], userid)[: self.ITEM_LIMIT]
 
             artists = [
                 {
                     "type": "artist",
                     "hash": artist["artisthash"],
                     "help_text": seconds_to_time_string(artist["playduration"]),
-                    "secondary_text": str(artist["playcount"])
-                    + " "
-                    + ngettext("play", "plays", artist["playcount"]),
+                    "secondary_text": str(artist["playcount"]) + " " + ngettext("play", "plays", artist["playcount"]),
                 }
                 for artist in artists
             ]
 
-            HomepageStore.entries[f"top_streamed_{self.duration}ly_artists"].items[
-                userid
-            ] = artists
+            HomepageStore.entries[f"top_streamed_{self.duration}ly_artists"].items[userid] = artists
 
     def destroy(self):
         """

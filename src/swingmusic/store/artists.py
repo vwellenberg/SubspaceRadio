@@ -1,17 +1,16 @@
 import json
-from typing import Iterable
+from collections.abc import Iterable
+
 from swingmusic.lib.tagger import create_artists
 from swingmusic.models import Artist
-from swingmusic.utils.auth import get_current_userid
 from swingmusic.store.tracks import TrackStore
+from swingmusic.utils.auth import get_current_userid
 
 ARTIST_LOAD_KEY = ""
 
 
 class ArtistMapEntry:
-    def __init__(
-        self, artist: Artist, albumhashes: set[str], trackhashes: set[str]
-    ) -> None:
+    def __init__(self, artist: Artist, albumhashes: set[str], trackhashes: set[str]) -> None:
         self.artist = artist
         self.albumhashes: set[str] = albumhashes
         self.trackhashes: set[str] = trackhashes
@@ -35,10 +34,12 @@ class ArtistStore:
     artistmap: dict[str, ArtistMapEntry] = {}
 
     @classmethod
-    def load_artists(cls, instance_key: str, _trackhashes: list[str] = []):
+    def load_artists(cls, instance_key: str, _trackhashes: list[str] | None = None):
         """
         Loads all artists from the database into the store.
         """
+        if _trackhashes is None:
+            _trackhashes = []
         global ARTIST_LOAD_KEY
         ARTIST_LOAD_KEY = instance_key
 
@@ -46,9 +47,7 @@ class ArtistStore:
         cls.artistmap.clear()
 
         cls.artistmap = {
-            artist.artisthash: ArtistMapEntry(
-                artist=artist, albumhashes=albumhashes, trackhashes=trackhashes
-            )
+            artist.artisthash: ArtistMapEntry(artist=artist, albumhashes=albumhashes, trackhashes=trackhashes)
             for artist, trackhashes, albumhashes in create_artists(_trackhashes)
         }
 

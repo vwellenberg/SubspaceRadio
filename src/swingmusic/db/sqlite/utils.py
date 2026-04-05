@@ -3,12 +3,11 @@ Helper functions for use with the SQLite database.
 """
 
 import sqlite3
-from sqlite3 import Connection, Cursor
 import time
-from typing import Optional
+from sqlite3 import Connection, Cursor
 
-from swingmusic.models import Album, Playlist, Track
 from swingmusic import settings
+from swingmusic.models import Album, Playlist, Track
 
 
 def tuple_to_track(track: tuple):
@@ -64,9 +63,9 @@ class SQLiteManager:
 
     def __init__(
         self,
-        conn: Optional[Connection] = None,
+        conn: Connection | None = None,
         userdata_db=False,
-        test_db_path: str = None,
+        test_db_path: str | None = None,
     ) -> None:
         """
         When a connection is passed in, don't close the connection, because it's

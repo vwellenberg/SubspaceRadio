@@ -3,16 +3,15 @@ All playlist-related routes.
 """
 
 import json
-from datetime import datetime
 import pathlib
+from datetime import datetime
 from typing import Any
 
-from PIL import UnidentifiedImageError, Image
-from pydantic_core import core_schema
+from flask_openapi3 import APIBlueprint, Tag
+from flask_openapi3 import FileStorage as _FileStorage
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field, GetCoreSchemaHandler
-
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint, FileStorage as _FileStorage
+from pydantic_core import core_schema
 
 from swingmusic import models
 from swingmusic.api.apischemas import GenericLimitSchema
@@ -25,16 +24,15 @@ from swingmusic.lib.sortlib import sort_tracks
 from swingmusic.models.playlist import Playlist
 from swingmusic.serializers.playlist import serialize_for_card
 from swingmusic.serializers.track import serialize_tracks
-
+from swingmusic.settings import Paths
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.dates import create_new_date, date_string_to_time_passed
-from swingmusic.settings import Paths
 
 tag = Tag(name="Playlists", description="Get and manage playlists")
 api = APIBlueprint("playlists", __name__, url_prefix="/playlists", abp_tags=[tag])
 
 
-def insert_playlist(name: str, image: str = None):
+def insert_playlist(name: str, image: str | None = None):
     playlist = {
         "image": image,
         "last_updated": create_new_date(),
@@ -112,9 +110,7 @@ def send_all_playlists(query: SendAllPlaylistsQuery):
 
     for playlist in playlists:
         if not playlist.has_image:
-            playlist.images = playlistlib.get_first_4_images(
-                trackhashes=playlist.trackhashes
-            )
+            playlist.images = playlistlib.get_first_4_images(trackhashes=playlist.trackhashes)
 
         playlist.clear_lists()
 
@@ -226,9 +222,7 @@ def get_playlist(path: PlaylistIDPath, query: GetPlaylistQuery):
                 "tracks": [],
             }
 
-        handler = next(
-            p["handler"] for p in custom_playlists if p["name"] == playlistid
-        )
+        handler = next(p["handler"] for p in custom_playlists if p["name"] == playlistid)
         playlist, tracks = handler()
         return format_custom_playlist(playlist, tracks)
 
@@ -240,9 +234,7 @@ def get_playlist(path: PlaylistIDPath, query: GetPlaylistQuery):
     if query.limit == -1:
         query.limit = len(playlist.trackhashes) - 1
 
-    tracks = TrackStore.get_tracks_by_trackhashes(
-        playlist.trackhashes[query.start : query.start + query.limit]
-    )
+    tracks = TrackStore.get_tracks_by_trackhashes(playlist.trackhashes[query.start : query.start + query.limit])
     duration = sum(t.duration for t in tracks)
     playlist._last_updated = date_string_to_time_passed(playlist.last_updated)
     playlist.duration = duration
@@ -257,9 +249,7 @@ def get_playlist(path: PlaylistIDPath, query: GetPlaylistQuery):
 
 class FileStorage(_FileStorage):
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, _source: Any, handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
+    def __get_pydantic_core_schema__(cls, _source: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         return core_schema.with_info_plain_validator_function(cls.validate)
 
 
@@ -269,9 +259,7 @@ class UpdatePlaylistForm(BaseModel):
     settings: str = Field(
         ...,
         description="The settings of the playlist",
-        json_schema_extra={
-            "example": '{"has_gif": false, "banner_pos": 50, "square_img": false, "pinned": false}'
-        },
+        json_schema_extra={"example": '{"has_gif": false, "banner_pos": 50, "square_img": false, "pinned": false}'},
     )
 
 
@@ -307,9 +295,7 @@ def update_playlist_info(path: PlaylistIDPath, form: UpdatePlaylistForm):
             pil_image = Image.open(image)
             content_type = image.content_type
 
-            playlist["image"] = playlistlib.save_p_image(
-                pil_image, playlistid, content_type
-            )
+            playlist["image"] = playlistlib.save_p_image(pil_image, playlistid, content_type)
 
             if image.content_type == "image/gif":
                 playlist["settings"]["has_gif"] = True
@@ -389,9 +375,7 @@ class RemoveTracksFromPlaylistBody(BaseModel):
 
 
 @api.post("/<playlistid>/remove-tracks")
-def remove_tracks_from_playlist(
-    path: PlaylistIDPath, body: RemoveTracksFromPlaylistBody
-):
+def remove_tracks_from_playlist(path: PlaylistIDPath, body: RemoveTracksFromPlaylistBody):
     """
     Remove track from playlist
     """
@@ -449,9 +433,7 @@ def save_item_as_playlist(body: SavePlaylistAsItemBody):
     if len(trackhashes) == 0:
         return {"error": "No tracks founds"}, 404
 
-    image = (
-        itemhash + ".webp" if itemtype != "folder" and itemtype != "tracks" else None
-    )
+    image = itemhash + ".webp" if itemtype != "folder" and itemtype != "tracks" else None
 
     playlist = insert_playlist(playlist_name, image)
 
@@ -462,18 +444,12 @@ def save_item_as_playlist(body: SavePlaylistAsItemBody):
     if itemtype != "folder" and itemtype != "tracks":
         filename = itemhash + ".webp"
 
-        base_path = (
-            Paths().lg_artist_img_path
-            if itemtype == "artist"
-            else Paths().lg_thumb_path()
-        )
+        base_path = Paths().lg_artist_img_path if itemtype == "artist" else Paths().lg_thumb_path()
         img_path = pathlib.Path(base_path + "/" + filename)
 
         if img_path.exists():
             img = Image.open(img_path)
-            playlistlib.save_p_image(
-                img, str(playlist.id), "image/webp", filename=filename
-            )
+            playlistlib.save_p_image(img, str(playlist.id), "image/webp", filename=filename)
 
     PlaylistTable.append_to_playlist(playlist.id, trackhashes)
     playlist.count = len(trackhashes)

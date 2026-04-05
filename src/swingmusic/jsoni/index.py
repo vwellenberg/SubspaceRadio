@@ -1,8 +1,7 @@
-import os
 import json
-
-from typing import Any
+import os
 from dataclasses import asdict, dataclass
+from typing import Any
 
 
 @dataclass
@@ -53,7 +52,7 @@ class Jsoni:
         self.write_to_file(self._config_as_dict)
 
     def load_config(self):
-        with open(self._configpath, "r") as f:
+        with open(self._configpath) as f:
             settings: dict[str, Any] = json.load(f)
 
         for key, value in settings.items():
@@ -61,9 +60,7 @@ class Jsoni:
 
     def __post_init__(self):
         if not self._configpath:
-            raise AttributeError(
-                f"{self.__class__.__name__}: self._configpath is not set"
-            )
+            raise AttributeError(f"{self.__class__.__name__}: self._configpath is not set")
 
         print("self: ", self)
         self.create_file()

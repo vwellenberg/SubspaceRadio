@@ -5,23 +5,21 @@ Contains all the album routes.
 import random
 from dataclasses import asdict
 
-from flask_openapi3 import Tag
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
-from flask_openapi3 import APIBlueprint
-from swingmusic.api.apischemas import AlbumHashSchema, AlbumLimitSchema, ArtistHashSchema
 
+from swingmusic.api.apischemas import AlbumHashSchema, AlbumLimitSchema, ArtistHashSchema
 from swingmusic.config import UserConfig
 from swingmusic.db.userdata import SimilarArtistTable
+from swingmusic.lib.albumslib import sort_by_track_no
 from swingmusic.models.album import Album
+from swingmusic.serializers.album import serialize_for_card_many
+from swingmusic.serializers.track import serialize_tracks
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.hashing import create_hash
-from swingmusic.lib.albumslib import sort_by_track_no
-from swingmusic.serializers.album import serialize_for_card_many
-from swingmusic.serializers.track import serialize_tracks
 from swingmusic.utils.stats import get_track_group_stats
-
 
 bp_tag = Tag(name="Album", description="Single album")
 api = APIBlueprint("album", __name__, url_prefix="/album", abp_tags=[bp_tag])
@@ -69,9 +67,7 @@ def get_album_tracks_and_info(body: GetAlbumInfoBody):
     tracks = TrackStore.get_tracks_by_trackhashes(albumentry.trackhashes)
     album.trackcount = len(tracks)
     album.duration = sum(t.duration for t in tracks)
-    album.check_type(
-        tracks=tracks, singleTrackAsSingle=UserConfig().showAlbumsAsSingles
-    )
+    album.check_type(tracks=tracks, singleTrackAsSingle=UserConfig().showAlbumsAsSingles)
 
     track_total = sum({int(t.extra.get("track_total", 1) or 1) for t in tracks})
     avg_bitrate = sum(t.bitrate for t in tracks) // (len(tracks) or 1)
@@ -147,15 +143,14 @@ def get_more_from_artist(body: GetMoreFromArtistsBody):
             a
             for a in albums
             # INFO: filter out albums added to other artists
-            if a.albumhash not in seen_hashes and artisthash in a.artisthashes
+            if a.albumhash not in seen_hashes
+            and artisthash in a.artisthashes
             # INFO: filter out albums with the same base title
             and create_hash(a.base_title) != create_hash(base_title)
         ]
 
         all_albums[artisthash] = serialize_for_card_many(
-            [a for a in albums if create_hash(a.base_title) != create_hash(base_title)][
-                :limit
-            ]
+            [a for a in albums if create_hash(a.base_title) != create_hash(base_title)][:limit]
         )
         # INFO: record albums added to other artists
         seen_hashes.update([a.albumhash for a in albums][:limit])
@@ -183,8 +178,7 @@ def get_album_versions(body: GetAlbumVersionsBody):
         a
         for a in albums
         if a.og_title != album.album.og_title
-        if a.base_title == basetitle
-        and artisthash in {a["artisthash"] for a in a.albumartists}
+        if a.base_title == basetitle and artisthash in {a["artisthash"] for a in a.albumartists}
     ]
 
     return serialize_for_card_many(albums)

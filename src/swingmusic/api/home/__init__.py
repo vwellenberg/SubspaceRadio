@@ -1,10 +1,9 @@
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
 from swingmusic.api.apischemas import GenericLimitSchema
-from swingmusic.lib.home.recentlyadded import get_recently_added_items
 from swingmusic.lib.home.get_recently_played import get_recently_played
+from swingmusic.lib.home.recentlyadded import get_recently_added_items
 from swingmusic.store.homepage import HomepageStore
 
 bp_tag = Tag(name="Home", description="Homepage items")
@@ -28,9 +27,7 @@ def get_recent_plays(query: GenericLimitSchema):
 
 
 class HomepageItem(BaseModel):
-    limit: int = Field(
-        default=9, description="The max number of items per group to return"
-    )
+    limit: int = Field(default=9, description="The max number of items per group to return")
 
 
 @api.get("/")

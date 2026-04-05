@@ -1,6 +1,5 @@
 import dataclasses
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 from swingmusic import settings
@@ -28,6 +27,7 @@ class Playlist:
     images: list[dict[str, str]] = dataclasses.field(default_factory=list)
     pinned: bool = False
     _score: float = 0
+
     def __post_init__(self):
         self.count = len(self.trackhashes)
 
@@ -35,9 +35,7 @@ class Playlist:
             self.userid = get_current_userid()
 
         self.pinned = self.settings.get("pinned", False)
-        self.has_image = (
-                settings.Paths().playlist_img_path / str(self.image)
-        ).exists()
+        self.has_image = (settings.Paths().playlist_img_path / str(self.image)).exists()
 
         if self.image is not None:
             self.thumb = "thumb_" + self.image

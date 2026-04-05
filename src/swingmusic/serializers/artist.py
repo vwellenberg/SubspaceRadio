@@ -3,7 +3,9 @@ from dataclasses import asdict
 from swingmusic.models.artist import Artist
 
 
-def serialize_for_card(artist: Artist, include: set[str] = set()):
+def serialize_for_card(artist: Artist, include: set[str] | None = None):
+    if include is None:
+        include = set()
     try:
         artist_dict = asdict(artist)
     except TypeError:
@@ -16,7 +18,6 @@ def serialize_for_card(artist: Artist, include: set[str] = set()):
         "albumcount",
         "playcount",
         "playduration",
-        "playcount",
         "lastplayed",
         "id",
         "genres",

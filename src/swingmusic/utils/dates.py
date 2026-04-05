@@ -1,5 +1,6 @@
-import pendulum
 from datetime import datetime, timedelta
+
+import pendulum
 
 _format = "%Y-%m-%d %H:%M:%S"
 
@@ -74,17 +75,12 @@ def get_date_range(duration: str, units_ago: int = 0):
     seconds_ago = 0
 
     if duration != "alltime":
-        seconds_ago = (
-            pendulum.now() - pendulum.now().subtract().start_of(duration)
-        ).total_seconds() * units_ago
+        seconds_ago = (pendulum.now() - pendulum.now().subtract().start_of(duration)).total_seconds() * units_ago
 
     match duration:
         case "day" | "week" | "month" | "year":
             date_range = (
-                pendulum.now()
-                .subtract(seconds=seconds_ago)
-                .start_of(duration)
-                .timestamp(),
+                pendulum.now().subtract(seconds=seconds_ago).start_of(duration).timestamp(),
                 pendulum.now()
                 # .end_of(duration)
                 .timestamp(),
@@ -106,27 +102,13 @@ def get_duration_ago(duration: str, units_ago: int = 1) -> int:
 
     match duration:
         case "day":
-            return int(
-                now.subtract(seconds=seconds_in_day * units_ago).timestamp()
-            )
+            return int(now.subtract(seconds=seconds_in_day * units_ago).timestamp())
         case "week":
-            return int(
-                now
-                .subtract(seconds=seconds_in_day * 7 * units_ago)
-                .timestamp()
-            )
+            return int(now.subtract(seconds=seconds_in_day * 7 * units_ago).timestamp())
         case "month":
-            return int(
-                now
-                .subtract(seconds=seconds_in_day * 30 * units_ago)
-                .timestamp()
-            )
+            return int(now.subtract(seconds=seconds_in_day * 30 * units_ago).timestamp())
         case "year":
-            return int(
-                now
-                .subtract(seconds=seconds_in_day * 365 * units_ago)
-                .timestamp()
-            )
+            return int(now.subtract(seconds=seconds_in_day * 365 * units_ago).timestamp())
         case _:
             raise ValueError(f"Invalid duration: {duration}")
 

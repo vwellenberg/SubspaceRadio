@@ -32,7 +32,7 @@ def fetch_similar_artists(name: str):
 
     return [
         SimilarArtistEntry(
-           **{
+            **{
                 "artisthash": create_hash(artist["name"]),
                 "name": artist["name"],
                 "weight": artist["weight"],

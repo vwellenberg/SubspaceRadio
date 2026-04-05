@@ -1,11 +1,11 @@
-import sys
-import pathlib
 import argparse
 import multiprocessing
+import pathlib
+import sys
 
 from swingmusic import settings
-from swingmusic.logger import setup_logger
 from swingmusic import tools as swing_tools
+from swingmusic.logger import setup_logger
 from swingmusic.settings import AssetHandler, Metadata
 from swingmusic.start_swingmusic import start_swingmusic
 
@@ -15,13 +15,9 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
 
-parser.add_argument(
-    "-v", "--version", action="version", version=f"swingmusic v{Metadata.version}"
-)
+parser.add_argument("-v", "--version", action="version", version=f"swingmusic v{Metadata.version}")
 parser.add_argument("--host", default="0.0.0.0", help="Host to run the app on.")
-parser.add_argument(
-    "--port", default=1970, help="HTTP port to run the app on.", type=int
-)
+parser.add_argument("--port", default=1970, help="HTTP port to run the app on.", type=int)
 parser.add_argument(
     "--debug",
     default=False,
@@ -55,16 +51,12 @@ def run(*args, **kwargs):
         client_path = pathlib.Path(client_path).resolve()
 
         if not client_path.exists():
-            print(
-                f"Client path {client_path} does not exist. Please provide a valid path"
-            )
+            print(f"Client path {client_path} does not exist. Please provide a valid path")
             sys.exit(1)
         else:
             # INFO: check if client path has index.html
             if not (client_path / "index.html").exists():
-                print(
-                    f"Client path {client_path} does not contain an index.html file. Please provide a valid path"
-                )
+                print(f"Client path {client_path} does not contain an index.html file. Please provide a valid path")
                 sys.exit(1)
 
     settings.Paths(config_parent=config_parent, client_dir=client_path)

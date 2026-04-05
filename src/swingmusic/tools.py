@@ -3,12 +3,14 @@ All tools ``swingmusic`` provide without UI
 """
 
 from getpass import getpass
+from pathlib import Path
+
+from PIL import Image
+
 from swingmusic.db.userdata import UserTable
+from swingmusic.settings import Paths
 from swingmusic.setup.sqlite import setup_sqlite
 from swingmusic.utils.auth import hash_password
-from swingmusic.settings import Paths
-from pathlib import Path
-from PIL import Image
 
 
 def handle_password_reset(config_parent: Path):

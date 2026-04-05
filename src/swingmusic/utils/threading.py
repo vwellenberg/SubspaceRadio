@@ -1,5 +1,5 @@
 import threading
-from multiprocessing import Process, Pipe
+from multiprocessing import Pipe, Process
 
 
 def background(func):
@@ -13,16 +13,15 @@ def background(func):
     return background_func
 
 
-
 class ProcessWithReturnValue(Process):
     """
     A process class that returns a value on join.
     Uses a pipe to communicate the return value back to the parent process.
     """
 
-    def __init__(
-        self, group=None, target=None, name=None, args=(), kwargs={}, Verbose=None
-    ):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, Verbose=None):
+        if kwargs is None:
+            kwargs = {}
         Process.__init__(self, group=group, target=target, name=name, args=args, kwargs=kwargs)
         self._parent_conn, self._child_conn = Pipe()
         self._target = target

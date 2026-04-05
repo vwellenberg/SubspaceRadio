@@ -2,8 +2,11 @@
 Prepares the server for use.
 """
 
-from time import time
 import uuid
+from dataclasses import asdict
+from time import time
+
+from swingmusic.config import UserConfig
 from swingmusic.lib.mapstuff import (
     map_album_colors,
     map_artist_colors,
@@ -16,9 +19,6 @@ from swingmusic.store.artists import ArtistStore
 from swingmusic.store.folder import FolderStore
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.generators import get_random_str
-
-from swingmusic.config import UserConfig
-from dataclasses import asdict
 
 
 def run_setup():

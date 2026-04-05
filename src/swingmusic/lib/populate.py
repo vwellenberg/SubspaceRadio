@@ -1,26 +1,26 @@
 import functools
-import os
-from dataclasses import asdict
-import multiprocessing as mp
-from requests import ReadTimeout
-from concurrent.futures import ProcessPoolExecutor
-from requests import ConnectionError as RequestConnectionError
 import logging
+import multiprocessing as mp
+import os
+from concurrent.futures import ProcessPoolExecutor
+from dataclasses import asdict
+
+from requests import ConnectionError as RequestConnectionError
+from requests import ReadTimeout
 
 from swingmusic import settings
+from swingmusic.db.userdata import SimilarArtistTable
 from swingmusic.lib.artistlib import CheckArtistImages
+from swingmusic.lib.colorlib import ProcessAlbumColors, ProcessArtistColors
 from swingmusic.lib.taglib import extract_thumb
 from swingmusic.models import Album, Artist
 from swingmusic.models.lastfm import SimilarArtist
 from swingmusic.models.track import Track
+from swingmusic.request.artists import fetch_similar_artists
 from swingmusic.store.albums import AlbumStore
 from swingmusic.store.artists import ArtistStore
 from swingmusic.utils.network import has_connection
 from swingmusic.utils.progressbar import tqdm
-from swingmusic.request.artists import fetch_similar_artists
-from swingmusic.lib.colorlib import ProcessAlbumColors, ProcessArtistColors
-
-from swingmusic.db.userdata import SimilarArtistTable
 
 log = logging.getLogger(__name__)
 
@@ -42,9 +42,7 @@ class CordinateMedia:
             try:
                 CheckArtistImages()
             except (RequestConnectionError, ReadTimeout) as e:
-                log.error(
-                    "Internet connection lost. Downloading artist images suspended."
-                )
+                log.error("Internet connection lost. Downloading artist images suspended.")
                 log.error(e)  # REVIEW More informations = good
         else:
             log.warning("No internet connection. Downloading artist images suspended!")
@@ -86,7 +84,7 @@ class ProcessTrackThumbnails:
 
         cpus = max(1, os.cpu_count() // 2)
 
-        albumsMap = ( AlbumStore.get_album_tracks(album.albumhash) for album in albums )
+        albumsMap = (AlbumStore.get_album_tracks(album.albumhash) for album in albums)
 
         # Create process pool with worker function
         with mp.Pool(processes=cpus) as pool:

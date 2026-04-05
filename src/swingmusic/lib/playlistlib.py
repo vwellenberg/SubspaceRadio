@@ -1,9 +1,11 @@
 """
 This library contains all the functions related to playlists.
 """
+
+import logging
 import random
 import string
-import logging
+
 from PIL import Image, ImageSequence
 
 from swingmusic import settings
@@ -12,6 +14,7 @@ from swingmusic.store.albums import AlbumStore
 from swingmusic.store.tracks import TrackStore
 
 logger = logging.getLogger(__name__)
+
 
 def create_thumbnail(image: Image, img_name: str) -> str:
     """
@@ -104,11 +107,9 @@ def duplicate_images(images: list):
 
     return images
 
+
 # TODO: mutable var in param.
-def get_first_4_images(
-        tracks: list[Track] = [],
-        trackhashes: list[str] = []
-) -> list[dict["str", str]]:
+def get_first_4_images(tracks: list[Track] = [], trackhashes: list[str] = []) -> list[dict["str", str]]:
     """
     Returns images of the first 4 albums that appear in the track list.
 
@@ -160,7 +161,7 @@ def cleanup_playlist_images() -> None:
         if not file.isfile:
             continue
 
-        name = file.name # not stem. PlaylistTable saves with extension
+        name = file.name  # not stem. PlaylistTable saves with extension
         if file not in linked_images:
             if name.removeprefix("thumb_") not in linked_images:
                 continue

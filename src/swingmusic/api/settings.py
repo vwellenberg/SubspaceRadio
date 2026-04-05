@@ -1,13 +1,13 @@
 from dataclasses import asdict
 from typing import Any
-from flask_openapi3 import Tag
-from flask_openapi3 import APIBlueprint
-from pydantic import BaseModel, Field
-from swingmusic.api.auth import admin_required
 
+from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+
+from swingmusic.api.auth import admin_required
+from swingmusic.config import UserConfig
 from swingmusic.db.userdata import PluginTable
 from swingmusic.lib.index import index_everything
-from swingmusic.config import UserConfig
 from swingmusic.settings import Metadata
 from swingmusic.utils.auth import get_current_userid
 
@@ -106,7 +106,8 @@ def get_all_settings():
 
     if config["version"] == "0.0.0":
         # fallback to version.txt (useful for docker builds)
-        config["version"] = open("version.txt", "r").read().strip()
+        with open("version.txt") as f:
+            config["version"] = f.read().strip()
 
     # only return lastfmSessionKey for the current user
     current_user = get_current_userid()
