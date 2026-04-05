@@ -9,7 +9,9 @@ Fork von [swingmx/swingmusic](https://github.com/swingmx/swingmusic) — ein sel
 - **Package Manager:** uv (nicht pip!)
 - **Server:** 192.168.0.4, Port 1970, systemd Service `subspaceradio`
 - **SSH:** `ssh vwellenberg@192.168.0.4` (ed25519 Key)
-- **Webclient:** Separates Repo `swingmx/webclient` (noch nicht geforkt)
+- **Webclient:** https://github.com/vwellenberg/SubspaceRadio-Client (Vue.js, yarn, vite)
+- **Webclient lokal:** /tmp/SubspaceRadio-Client
+- **Webclient auf Server:** ~/SubspaceRadio-Client, deployed nach ~/.config/swingmusic/client/
 
 ## Entwicklung
 
@@ -61,6 +63,20 @@ ps aux | grep swingmusic | grep -v grep | awk '{print $6/1024"MB"}'
 
 Passwordless sudo ist konfiguriert für `systemctl restart/stop/start subspaceradio`.
 
+### Webclient deployen
+
+```bash
+cd ~/SubspaceRadio-Client
+git pull
+NODE_OPTIONS='--dns-result-order=ipv4first' yarn install --network-timeout 120000
+NODE_OPTIONS='--dns-result-order=ipv4first' yarn build
+rm -rf ~/.config/swingmusic/client
+cp -r dist ~/.config/swingmusic/client
+sudo -n systemctl restart subspaceradio
+```
+
+**Wichtig:** Server hat IPv6-Problem — yarn/npm brauchen `NODE_OPTIONS='--dns-result-order=ipv4first'`.
+
 ## Was bisher gemacht wurde
 
 - Ruff Linting + Formatting (483 → 0 Issues)
@@ -73,4 +89,4 @@ Passwordless sudo ist konfiguriert für `systemctl restart/stop/start subspacera
 
 ## Nächste Schritte
 
-Siehe [ROADMAP.md](ROADMAP.md). Frontend-Änderungen (Ordner-Listenansicht, Playlist Drag & Drop, Auto-Tag Button) erfordern einen Fork des Webclient-Repos (`swingmx/webclient`).
+Siehe [ROADMAP.md](ROADMAP.md). Frontend-Änderungen (Ordner-Listenansicht, Playlist Drag & Drop, Auto-Tag Button) können jetzt im Webclient-Fork gemacht werden.
