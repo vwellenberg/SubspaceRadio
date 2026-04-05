@@ -18,6 +18,7 @@ from swingmusic.config import UserConfig
 from swingmusic.db.libdata import TrackTable
 from swingmusic.db.userdata import FavoritesTable, PlaylistTable
 from swingmusic.lib.folderslib import get_files_and_dirs, get_folders
+from swingmusic.lib.sortlib import sort_folders
 from swingmusic.serializers.track import serialize_track, serialize_tracks
 from swingmusic.store.tracks import TrackStore
 from swingmusic.utils.wintools import is_windows
@@ -72,7 +73,7 @@ class FolderTree(BaseModel):
         description="Whether to reverse the sort order of the tracks",
     )
     sortfoldersby: str = Field(
-        "lastmod",
+        "name",
         description="""The field to sort folders by.
         Options: [
             "default",
@@ -110,6 +111,7 @@ def get_folder_tree(body: FolderTree):
 
     if req_dir == "$home":
         folders = get_folders(root_dirs)
+        folders = sort_folders(folders, "name")
 
         return {
             "folders": folders,

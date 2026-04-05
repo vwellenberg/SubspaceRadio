@@ -48,7 +48,9 @@ def sort_folders(folders: list[Folder], key: str, reverse: bool = False):
 
     sortfunc: Callable[[Folder], str | float] = lambda folder: getattr(folder, key)
 
-    if key == "lastmod":
+    if key == "name":
+        sortfunc = lambda folder: folder.name.casefold()
+    elif key == "lastmod":
         sortfunc = lambda folder: os.path.getmtime(folder.path)
 
     return sorted(folders, key=sortfunc, reverse=reverse)
