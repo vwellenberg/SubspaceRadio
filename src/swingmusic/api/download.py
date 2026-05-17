@@ -7,7 +7,10 @@ from pathlib import Path
 from flask import send_file, send_from_directory
 from flask_openapi3 import APIBlueprint, Tag
 
+from pydantic import BaseModel, Field
+
 from swingmusic.api.apischemas import AlbumHashSchema, TrackHashSchema
+from swingmusic.db.userdata import PlaylistTable
 from swingmusic.store.tracks import TrackStore
 
 bp_tag = Tag(name="Download", description="Download audio files")
@@ -51,6 +54,45 @@ def download_album(path: AlbumHashSchema):
 
     album_name = tracks[0].album or path.albumhash
     safe_name = "".join(c if c.isalnum() or c in " -_." else "_" for c in album_name)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+        for track in tracks:
+            fp = Path(track.filepath)
+            if fp.exists():
+                zf.write(fp, fp.name)
+
+    buf.seek(0)
+
+    return send_file(
+        buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"{safe_name}.zip",
+    )
+
+
+class PlaylistIDPath(BaseModel):
+    playlist_id: int = Field(description="The playlist ID")
+
+
+@api.get("/playlist/<playlist_id>")
+def download_playlist(path: PlaylistIDPath):
+    """Download all tracks in a playlist as a ZIP file."""
+    playlist = PlaylistTable.get_by_id(path.playlist_id)
+    if playlist is None:
+        return {"msg": "Playlist not found"}, 404
+
+    tracks = [
+        TrackStore.trackhashmap[h].get_best()
+        for h in playlist.trackhashes
+        if h in TrackStore.trackhashmap
+    ]
+
+    if not tracks:
+        return {"msg": "Playlist is empty"}, 404
+
+    safe_name = "".join(c if c.isalnum() or c in " -_." else "_" for c in (playlist.name or "playlist"))
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
